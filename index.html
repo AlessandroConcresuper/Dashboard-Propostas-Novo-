@@ -83,7 +83,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
 
 <div class="info-banner">
 <span style="font-size:18px">💡</span>
-<span>Use os filtros abaixo para visualizar os dados por <b>Mês</b>, <b>Dia</b> ou <b>Vendedor</b>. Selecione um dia específico ou um vendedor para filtrar.</span>
+<span>Use os filtros abaixo para visualizar os dados por <b>Mês</b>, <b>Dia</b> ou <b>Vendedor</b>.</span>
 </div>
 
 <div class="filters">
@@ -150,7 +150,7 @@ function parseData(v) {
   var s = String(v).trim(), p = s.split('/');
   if (p.length === 3) {
     var a = parseInt(p[0]), b = parseInt(p[1]), c = parseInt(p[2]);
-    if (c < 100) c += 2000;
+    if (c &lt; 100) c += 2000;
     if (a > 12) return new Date(c, b-1, a, 12, 0, 0);
     if (b > 12) return new Date(c, a-1, b, 12, 0, 0);
     return new Date(c, a-1, b, 12, 0, 0);
@@ -174,7 +174,7 @@ function diasUteisRestantes() {
   var ultimo = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
   var count = 0;
   var d = new Date(hoje);
-  while (d <= ultimo) {
+  while (d &lt;= ultimo) {
     var diaSem = d.getDay();
     if (diaSem !== 0 && diaSem !== 6) count++;
     d.setDate(d.getDate() + 1);
@@ -184,7 +184,7 @@ function diasUteisRestantes() {
 
 function processar(registros) {
   var linhaDatas = -1;
-  for (var i = 0; i < registros.length; i++) {
+  for (var i = 0; i &lt; registros.length; i++) {
     var valA = String(registros[i][0] || '').toLowerCase().trim();
     if (valA === 'data') { linhaDatas = i; break; }
   }
@@ -196,7 +196,7 @@ function processar(registros) {
 
   var datas = [];
   var rowDatas = registros[linhaDatas];
-  for (var c = 1; c < rowDatas.length; c++) {
+  for (var c = 1; c &lt; rowDatas.length; c++) {
     var dt = parseData(rowDatas[c]);
     if (dt) datas.push({ col: c, data: dt });
   }
@@ -207,11 +207,11 @@ function processar(registros) {
   }
 
   dados = [];
-  for (var i = linhaDatas + 1; i < registros.length; i++) {
+  for (var i = linhaDatas + 1; i &lt; registros.length; i++) {
     var row = registros[i];
     var nome = String(row[0] || '').trim();
     if (!nome || nome.match(/^(vendedor|total|meta|)$/i)) continue;
-    for (var d = 0; d < datas.length; d++) {
+    for (var d = 0; d &lt; datas.length; d++) {
       var col = datas[d].col;
       var dt = datas[d].data;
       var val = parseNum(row[col]);
@@ -248,7 +248,7 @@ async function carregarDados() {
   try {
     var caminhos = [CAMINHO, './propostas.xlsx', 'propostas.xlsx'];
     var buffer = null;
-    for (var c = 0; c < caminhos.length; c++) {
+    for (var c = 0; c &lt; caminhos.length; c++) {
       try {
         var url = caminhos[c] + '?_=' + Date.now();
         var r = await fetch(url, { cache: 'no-store' });
@@ -286,9 +286,10 @@ function aplicarFiltros() {
     vendedor: document.getElementById('fVendedor').value
   };
   filtrados = dados.filter(function(r) {
-    return (f.mes === 'all' || r.mes === f.mes) && 
-           (r.dia === f.dia) && 
-           (f.vendedor === 'all' || r.vendedor === f.vendedor);
+    var matchMes = f.mes === 'all' || r.mes === f.mes;
+    var matchDia = f.dia === 'all' || r.dia === f.dia;
+    var matchVend = f.vendedor === 'all' || r.vendedor === f.vendedor;
+    return matchMes && matchDia && matchVend;
   });
   renderizar(f);
 }
@@ -304,13 +305,15 @@ function renderizar(f) {
   filtrados.forEach(function(r){ vendsUnicos[r.vendedor] = (vendsUnicos[r.vendedor]||0) + r.propostas; });
   var vendsArray = Object.keys(vendsUnicos).map(function(n) { return { nome: n, total: vendsUnicos[n] }; }).sort(function(a,b){return b.total - a.total;});
   var qtdVends = vendsArray.length;
-  var diasUnicos = {};
-  filtrados.forEach(function(r){ diasUnicos[r.dia] = (diasUnicos[r.dia]||0) + r.propostas; });
-  var qtdDias = Object.keys(diasUnicos).length;
+  
+  // Média por Dia USA o total de dias da base COMPLETA (não filtrada)
+  var todosDias = {};
+  dados.forEach(function(r) { todosDias[r.dia] = 1; });
+  var totalDiasPeriodo = Object.keys(todosDias).length;
   
   document.getElementById('kpiTotal').textContent = fmt(total);
   document.getElementById('kpiMedia').textContent = fmt1(total / qtdVends);
-  document.getElementById('kpiDia').textContent = fmt1(total / qtdDias);
+  document.getElementById('kpiDia').textContent = fmt1(total / totalDiasPeriodo);
   document.getElementById('kpiTop').textContent = vendsArray.length ? vendsArray[0].nome + ' (' + fmt(vendsArray[0].total) + ')' : '—';
   document.getElementById('kpiDias').textContent = diasUteisRestantes();
   
@@ -382,7 +385,7 @@ function renderizarProgresso(vends) {
 function renderizarRanking(vends) {
   var ordenado = vends.slice().sort(function(a,b){return b.total - a.total;});
   
-  // Conta o TOTAL de dias únicos em toda a base
+  // Média por Dia na tabela: total de propostas ÷ total de dias da base
   var totalDiasUnicos = {};
   dados.forEach(function(r) { totalDiasUnicos[r.dia] = 1; });
   var qtdTotalDias = Object.keys(totalDiasUnicos).length;
@@ -395,7 +398,6 @@ function renderizarRanking(vends) {
     }
   });
   ordenado.forEach(function(v,i){
-    // Média real = total de propostas ÷ total de dias do período
     var mediaDia = v.total / qtdTotalDias;
     rankBody.innerHTML += '<tr>' +
       '<td style="font-weight:800;color:var(--dim)">'+(i+1)+'º</td>' +
