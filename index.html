@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propostas pro vendedor · Concresuper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#0B1420;--card:#111F30;--accent:#F5B400;--text:#fff;--dim:#8CA0B3;--border:rgba(255,255,255,.07);--green:#2ECC71;--red:#FF5C5C}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:15px 25px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:15px}
+.logo{width:45px;height:45px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#1A1200;font-weight:800;font-size:22px}
+.brand h1{font-size:20px;font-weight:800}
+.brand p{font-size:12px;color:var(--dim)}
+.header-right{text-align:right;font-size:11px;color:var(--dim)}
+.header-right b{color:var(--text)}
+.top-actions{display:flex;gap:10px;align-items:center}
+.btn{background:var(--accent);color:#1A1200;border:none;padding:9px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s}
+.btn:hover{background:#FFC72E}
+.filters{display:flex;gap:12px;flex-wrap:wrap;background:var(--card);padding:15px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px}
+.filter-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px}
+.filter-group label{font-size:10px;text-transform:uppercase;font-weight:700;color:var(--dim);letter-spacing:.5px}
+.filter-group select{background:#0E1A29;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;outline:none}
+.info-banner{background:#0D2137;border:1px solid #1A4975;border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:#B8D4F0;display:flex;align-items:center;gap:10px;line-height:1.5}
+.info-banner b{color:#fff}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:15px;margin-bottom:20px}
+.kpi-card{background:var(--card);border:1px solid var(--border);padding:20px;border-radius:15px}
+.kpi-label{font-size:12px;color:var(--dim);font-weight:500}
+.kpi-value{font-size:24px;font-weight:800;margin-top:8px}
+.charts-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:15px;margin-bottom:20px}
+.chart-full{grid-column:1/-1}
+.panel{background:var(--card);border:1px solid var(--border);padding:20px;border-radius:15px;min-height:320px}
+.panel-title{font-size:14px;font-weight:700;margin-bottom:15px;display:flex;justify-content:space-between}
+.chart-area{position:relative;height:270px;width:100%}
+.progress-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px;margin-bottom:20px}
+.prog-card{background:var(--card);border:1px solid var(--border);padding:15px;border-radius:12px}
+.prog-head{display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px;font-weight:600}
+.bar-bg{height:10px;background:#0E1A29;border-radius:10px;overflow:hidden}
+.bar-fill{height:100%;border-radius:10px;transition:width 1s ease}
+.bar-fill.green{background:#2ECC71}.bar-fill.yellow{background:#F5B400}.bar-fill.orange{background:#F39C12}.bar-fill.red{background:#FF5C5C}
+.prog-det{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;color:var(--dim);margin-top:6px;text-align:center}
+.prog-det span{background:#0E1A29;padding:5px 8px;border-radius:6px}
+.ranking-section{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:25px;margin-bottom:20px}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:20px;margin-bottom:40px;padding-top:20px}
+.pod-item{width:150px;text-align:center;background:#0E1A29;border:1px solid var(--border);border-radius:12px 12px 0 0;padding:15px;border-top:4px solid}
+.p1{height:180px;border-color:var(--accent)}.p2{height:140px;border-color:#C0C0C0}.p3{height:110px;border-color:#CD7F32}
+.medal{font-size:24px;margin-bottom:8px}.pod-name{font-weight:700;font-size:14px}.pod-val{color:var(--accent);font-weight:800;font-size:18px;margin-top:5px}
+.rank-table{width:100%;border-collapse:collapse;margin-top:20px}
+.rank-table th{text-align:left;font-size:11px;color:var(--dim);text-transform:uppercase;padding:10px;border-bottom:1px solid var(--border);font-weight:700}
+.rank-table td{padding:12px 10px;font-size:14px;border-bottom:1px solid var(--border)}
+.section-title{font-size:18px;font-weight:700;margin:25px 0 15px;display:flex;align-items:center;gap:10px}
+.section-title .badge{background:var(--accent);color:#1A1200;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:700}
+.erro-box{background:#2A1515;border:1px solid var(--red);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;display:none;line-height:1.6}
+.erro-box b{color:var(--red)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#000;padding:12px 20px;border-radius:8px;font-weight:700;font-size:13px;display:none;z-index:1000}
+.empty-state{text-align:center;padding:80px 20px;color:var(--dim)}
+@media(max-width:1000px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+<div class="brand">
+<div class="logo">C</div>
+<div>
+<h1>Propostas pro vendedor</h1>
+<p>Concresuper · Matriz Operacional</p>
+</div>
+</div>
+<div class="top-actions">
+<div class="header-right">
+Última Atualização<br><b id="ultAtualizacao">—</b>
+</div>
+<button class="btn" onclick="carregarDados()">Atualizar</button>
+</div>
+</div>
+
+<div class="info-banner">
+<span style="font-size:18px">💡</span>
+<span>Use os filtros abaixo para visualizar os dados por <b>Mês</b>, <b>Dia</b> ou <b>Vendedor</b>. Selecione um dia específico ou um vendedor para filtrar.</span>
+</div>
+
+<div class="filters">
+<div class="filter-group"><label>Mês</label><select id="fMes" onchange="aplicarFiltros()"><option value="all">Todos os Meses</option></select></div>
+<div class="filter-group"><label>Dia</label><select id="fDia" onchange="aplicarFiltros()"></select></div>
+<div class="filter-group"><label>Vendedor</label><select id="fVendedor" onchange="aplicarFiltros()"><option value="all">Todos os Vendedores</option></select></div>
+</div>
+
+<div class="erro-box" id="erroMsg"><b>Atenção:</b> <span id="erroTexto"></span></div>
+
+<div class="kpi-grid">
+<div class="kpi-card"><p class="kpi-label">Total de Propostas</p><p class="kpi-value" id="kpiTotal">—</p></div>
+<div class="kpi-card"><p class="kpi-label">Média por Vendedor</p><p class="kpi-value" id="kpiMedia">—</p></div>
+<div class="kpi-card"><p class="kpi-label">Média por Dia</p><p class="kpi-value" id="kpiDia">—</p></div>
+<div class="kpi-card"><p class="kpi-label">Melhor Performance</p><p class="kpi-value" id="kpiTop" style="font-size:18px">—</p></div>
+<div class="kpi-card"><p class="kpi-label">Dias Úteis Restantes</p><p class="kpi-value" id="kpiDias">—</p></div>
+</div>
+
+<div class="section-title">Propostas por Vendedor — Ranking Geral <span class="badge">📊</span></div>
+<div class="charts-grid">
+<div class="panel chart-full"><div class="panel-title">Quantidade de Propostas por Vendedor</div><div class="chart-area"><canvas id="chartRank"></canvas></div></div>
+</div>
+
+<div class="section-title">Propostas ao Longo do Mês <span class="badge">📈</span></div>
+<div class="charts-grid">
+<div class="panel chart-full"><div class="panel-title">Evolução Diária do Total de Propostas</div><div class="chart-area"><canvas id="chartEvo"></canvas></div></div>
+</div>
+
+<div class="section-title">Análise Detalhada</div>
+<div class="charts-grid">
+<div class="panel"><div class="panel-title">Distribuição de Propostas por Vendedor</div><div class="chart-area"><canvas id="chartPart"></canvas></div></div>
+<div class="panel"><div class="panel-title">Comparativo de Propostas entre Vendedores</div><div class="chart-area"><canvas id="chartComp"></canvas></div></div>
+</div>
+
+<div class="section-title">Desempenho Individual</div>
+<div class="progress-grid" id="progGrid"></div>
+
+<div class="section-title">Classificação Geral</div>
+<div class="ranking-section">
+<div class="podium" id="podium"></div>
+<table class="rank-table">
+<thead><tr><th>Posição</th><th>Vendedor</th><th>Total de Propostas</th><th>Média por Dia</th></tr></thead>
+<tbody id="rankBody"></tbody>
+</table>
+</div>
+
+<div class="toast" id="toast">Carregando...</div>
+
+<script>
+var CAMINHO = 'propostas.xlsx';
+var dados = [], filtrados = [], graf = {};
+
+function parseNum(v) {
+  if (v == null || v === '') return 0;
+  if (typeof v === 'number') return isNaN(v) ? 0 : v;
+  var s = String(v).replace(/[R$\s]/g, '').replace(/\./g, '').replace(',', '.').trim();
+  return parseFloat(s) || 0;
+}
+
+function parseData(v) {
+  if (!v) return null;
+  if (v instanceof Date && !isNaN(v)) return v;
+  if (typeof v === 'number') { try { var dc = XLSX.SSF.parse_date_code(v); if(dc) return new Date(dc.y, dc.m-1, dc.d, 12, 0, 0); } catch(e) {} }
+  var s = String(v).trim(), p = s.split('/');
+  if (p.length === 3) {
+    var a = parseInt(p[0]), b = parseInt(p[1]), c = parseInt(p[2]);
+    if (c < 100) c += 2000;
+    if (a > 12) return new Date(c, b-1, a, 12, 0, 0);
+    if (b > 12) return new Date(c, a-1, b, 12, 0, 0);
+    return new Date(c, a-1, b, 12, 0, 0);
+  }
+  var d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function fmt(v) { return (v||0).toLocaleString('pt-BR', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+function fmt1(v) { return (v||0).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}); }
+
+function toast(m) {
+  var t = document.getElementById('toast');
+  t.textContent = m; t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){t.style.display='none'}, 3500);
+}
+
+function diasUteisRestantes() {
+  var hoje = new Date();
+  var ultimo = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+  var count = 0;
+  var d = new Date(hoje);
+  while (d <= ultimo) {
+    var diaSem = d.getDay();
+    if (diaSem !== 0 && diaSem !== 6) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+function processar(registros) {
+  var linhaDatas = -1;
+  for (var i = 0; i < registros.length; i++) {
+    var valA = String(registros[i][0] || '').toLowerCase().trim();
+    if (valA === 'data') { linhaDatas = i; break; }
+  }
+  if (linhaDatas === -1) {
+    document.getElementById('erroTexto').innerHTML = 'Linha com as datas não encontrada.';
+    document.getElementById('erroMsg').style.display = 'block';
+    return;
+  }
+
+  var datas = [];
+  var rowDatas = registros[linhaDatas];
+  for (var c = 1; c < rowDatas.length; c++) {
+    var dt = parseData(rowDatas[c]);
+    if (dt) datas.push({ col: c, data: dt });
+  }
+  if (datas.length === 0) {
+    document.getElementById('erroTexto').innerHTML = 'Nenhuma data válida encontrada.';
+    document.getElementById('erroMsg').style.display = 'block';
+    return;
+  }
+
+  dados = [];
+  for (var i = linhaDatas + 1; i < registros.length; i++) {
+    var row = registros[i];
+    var nome = String(row[0] || '').trim();
+    if (!nome || nome.match(/^(vendedor|total|meta|)$/i)) continue;
+    for (var d = 0; d < datas.length; d++) {
+      var col = datas[d].col;
+      var dt = datas[d].data;
+      var val = parseNum(row[col]);
+      if (val > 0) {
+        dados.push({
+          vendedor: nome,
+          propostas: val,
+          data: dt,
+          mes: dt.toLocaleDateString('pt-BR', {month:'long', year:'numeric'}),
+          dia: dt.toLocaleDateString('pt-BR')
+        });
+      }
+    }
+  }
+
+  if (dados.length === 0) {
+    document.getElementById('erroTexto').innerHTML = 'Nenhuma proposta encontrada.';
+    document.getElementById('erroMsg').style.display = 'block';
+    return;
+  }
+  
+  document.getElementById('erroMsg').style.display = 'none';
+  document.getElementById('ultAtualizacao').textContent = new Date().toLocaleString('pt-BR');
+  preencherFiltros();
+  aplicarFiltros();
+  toast(dados.length + ' registros carregados');
+}
+
+async function carregarDados() {
+  dados = []; filtrados = [];
+  Object.keys(graf).forEach(function(k) { destruir(k); });
+  toast('Carregando dados...');
+  document.getElementById('erroMsg').style.display = 'none';
+  try {
+    var caminhos = [CAMINHO, './propostas.xlsx', 'propostas.xlsx'];
+    var buffer = null;
+    for (var c = 0; c < caminhos.length; c++) {
+      try {
+        var url = caminhos[c] + '?_=' + Date.now();
+        var r = await fetch(url, { cache: 'no-store' });
+        if (r.ok) { buffer = await r.arrayBuffer(); break; }
+      } catch(e) {}
+    }
+    if (!buffer) throw new Error('Arquivo propostas.xlsx não encontrado.');
+    var wb = XLSX.read(buffer, { type: 'array', cellDates: true, raw: true });
+    var dadosBrutos = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' });
+    processar(dadosBrutos);
+  } catch(e) {
+    document.getElementById('erroTexto').innerHTML = e.message;
+    document.getElementById('erroMsg').style.display = 'block';
+    toast('Erro ao carregar');
+  }
+}
+
+function preencherFiltros() {
+  var uniq = function(arr) { var o = {}; arr.forEach(function(v) { if (v && v !== 'N/A') o[v] = 1; }); return Object.keys(o).sort(function(a,b) { return a.localeCompare(b, 'pt-BR'); }); };
+  var setar = function(id, vals, temAll) {
+    var el = document.getElementById(id);
+    el.innerHTML = '';
+    if (temAll !== false) el.innerHTML = '<option value="all">' + (id === 'fDia' ? 'Todos os Dias' : 'Todos') + '</option>';
+    vals.forEach(function(v) { var o = document.createElement('option'); o.value = v; o.textContent = v; el.appendChild(o); });
+  };
+  setar('fMes', uniq(dados.map(function(r){return r.mes;})));
+  setar('fDia', uniq(dados.map(function(r){return r.dia;})), false);
+  setar('fVendedor', uniq(dados.map(function(r){return r.vendedor;})));
+}
+
+function aplicarFiltros() {
+  var f = {
+    mes: document.getElementById('fMes').value,
+    dia: document.getElementById('fDia').value,
+    vendedor: document.getElementById('fVendedor').value
+  };
+  filtrados = dados.filter(function(r) {
+    return (f.mes === 'all' || r.mes === f.mes) && 
+           (r.dia === f.dia) && 
+           (f.vendedor === 'all' || r.vendedor === f.vendedor);
+  });
+  renderizar(f);
+}
+
+function renderizar(f) {
+  if (!filtrados.length) {
+    ['kpiTotal','kpiMedia','kpiDia','kpiTop','kpiDias'].forEach(function(id){document.getElementById(id).textContent='—';});
+    return;
+  }
+  
+  var total = filtrados.reduce(function(s,r){return s + r.propostas;}, 0);
+  var vendsUnicos = {};
+  filtrados.forEach(function(r){ vendsUnicos[r.vendedor] = (vendsUnicos[r.vendedor]||0) + r.propostas; });
+  var vendsArray = Object.keys(vendsUnicos).map(function(n) { return { nome: n, total: vendsUnicos[n] }; }).sort(function(a,b){return b.total - a.total;});
+  var qtdVends = vendsArray.length;
+  var diasUnicos = {};
+  filtrados.forEach(function(r){ diasUnicos[r.dia] = (diasUnicos[r.dia]||0) + r.propostas; });
+  var qtdDias = Object.keys(diasUnicos).length;
+  
+  document.getElementById('kpiTotal').textContent = fmt(total);
+  document.getElementById('kpiMedia').textContent = fmt1(total / qtdVends);
+  document.getElementById('kpiDia').textContent = fmt1(total / qtdDias);
+  document.getElementById('kpiTop').textContent = vendsArray.length ? vendsArray[0].nome + ' (' + fmt(vendsArray[0].total) + ')' : '—';
+  document.getElementById('kpiDias').textContent = diasUteisRestantes();
+  
+  renderizarGraficos(vendsArray);
+  renderizarProgresso(vendsArray);
+  renderizarRanking(vendsArray);
+}
+
+function destruir(k) { if (graf[k]) { try { graf[k].destroy(); } catch(e) {} delete graf[k]; } }
+
+function renderizarGraficos(vends) {
+  Chart.defaults.color = '#8CA0B3'; Chart.defaults.font.family = 'Inter';
+  var grid = { color: 'rgba(255,255,255,.05)' };
+  var nomes = vends.map(function(v){return v.nome;});
+  var totais = vends.map(function(v){return v.total;});
+  
+  destruir('rank');
+  graf.rank = new Chart(document.getElementById('chartRank'), { type:'bar', data:{labels:nomes, datasets:[{data:totais, backgroundColor:'#F5B400', borderRadius:5}]}, options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:grid, beginAtZero:true}, y:{grid:{display:false}}}} });
+
+  destruir('evo');
+  var evo = {};
+  filtrados.forEach(function(r){var k=r.dia; if (k !== 'N/A') evo[k] = (evo[k]||0) + r.propostas; });
+  var labs = Object.keys(evo).sort(function(a,b){
+    var ma=a.match(/(\d{2})\/(\d{2})\/(\d{4})/),mb=b.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if(ma&&mb) return new Date(ma[3],ma[2]-1,ma[1])-new Date(mb[3],mb[2]-1,mb[1]);
+    return a.localeCompare(b);
+  });
+  if (labs.length > 0) {
+    graf.evo = new Chart(document.getElementById('chartEvo'), { type:'line', data:{labels:labs, datasets:[{data:labs.map(function(l){return evo[l];}), borderColor:'#F5B400', backgroundColor:'rgba(245,180,0,.1)', fill:true, tension:.35, pointRadius:4, pointBackgroundColor:'#F5B400'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:grid, beginAtZero:true}}}});
+  }
+
+  destruir('part');
+  var paleta = ['#F5B400','#4C8DFF','#2ECC71','#FF6B6B','#B084F5','#4FD1C5','#F783AC','#F0A868','#63C7FF','#E4C441','#95A5A6'];
+  graf.part = new Chart(document.getElementById('chartPart'), { type:'doughnut', data:{labels:nomes, datasets:[{data:totais, backgroundColor:nomes.map(function(v,i){return paleta[i%paleta.length];}), borderWidth:0}]}, options:{responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'bottom', labels:{color:'#fff', boxWidth:10, usePointStyle:true, padding:10}}}} });
+
+  destruir('comp');
+  var pluginLabels = {
+    id: 'valorLabels',
+    afterDatasetsDraw: function(chart) {
+      var ctx = chart.ctx;
+      chart.data.datasets.forEach(function(dataset, i) {
+        var meta = chart.getDatasetMeta(i);
+        if (!meta.hidden) {
+          meta.data.forEach(function(bar, index) {
+            var valor = dataset.data[index];
+            if (valor === 0) return;
+            ctx.fillStyle = '#F5B400';
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(valor, bar.x, bar.y - 8);
+          });
+        }
+      });
+    }
+  };
+  graf.comp = new Chart(document.getElementById('chartComp'), { type:'bar', data:{labels:nomes, datasets:[{label:'Propostas', data:totais, backgroundColor:totais.map(function(v,i){var m=Math.max.apply(null,totais); return v===m?'#2ECC71':'#4C8DFF';}), borderRadius:5}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:grid, beginAtZero:true}}}, plugins:[pluginLabels]});
+}
+
+function renderizarProgresso(vends) {
+  var el = document.getElementById('progGrid'); el.innerHTML = '';
+  var maxTotal = Math.max.apply(null, vends.map(function(v){return v.total;}));
+  vends.slice().sort(function(a,b){return b.total - a.total;}).forEach(function(v){
+    var pct = Math.round(v.total / maxTotal * 100);
+    var cor = pct >= 80 ? 'green' : (pct >= 50 ? 'yellow' : (pct >= 25 ? 'orange' : 'red'));
+    el.innerHTML += '<div class="prog-card"><div class="prog-head"><span>'+v.nome+'</span><span style="color:var(--accent)">'+fmt(v.total)+'</span></div><div class="bar-bg"><div class="bar-fill '+cor+'" style="width:'+pct+'%"></div></div><div class="prog-det"><span>📊 '+pct+'% do líder</span><span>📅 '+fmt1(v.total/(vends.length||1))+' média/dia</span></div></div>';
+  });
+}
+
+function renderizarRanking(vends) {
+  var ordenado = vends.slice().sort(function(a,b){return b.total - a.total;});
+  
+  // Conta o TOTAL de dias únicos em toda a base
+  var totalDiasUnicos = {};
+  dados.forEach(function(r) { totalDiasUnicos[r.dia] = 1; });
+  var qtdTotalDias = Object.keys(totalDiasUnicos).length;
+  
+  var podiumEl = document.getElementById('podium'), rankBody = document.getElementById('rankBody');
+  podiumEl.innerHTML = ''; rankBody.innerHTML = '';
+  [1,0,2].forEach(function(idx) {
+    if (ordenado[idx]) {
+      podiumEl.innerHTML += '<div class="pod-item ' + ['p1','p2','p3'][idx] + '"><div class="medal">' + ['🥇','🥈','🥉'][idx] + '</div><div class="pod-name">' + ordenado[idx].nome + '</div><div class="pod-val">' + fmt(ordenado[idx].total) + '</div></div>';
+    }
+  });
+  ordenado.forEach(function(v,i){
+    // Média real = total de propostas ÷ total de dias do período
+    var mediaDia = v.total / qtdTotalDias;
+    rankBody.innerHTML += '<tr>' +
+      '<td style="font-weight:800;color:var(--dim)">'+(i+1)+'º</td>' +
+      '<td style="font-weight:700">'+v.nome+'</td>' +
+      '<td style="font-weight:700;color:var(--accent)">'+fmt(v.total)+'</td>' +
+      '<td>'+fmt1(mediaDia)+'</td>' +
+      '</tr>';
+  });
+}
+
+carregarDados();
+</script>
+</body>
+</html>
