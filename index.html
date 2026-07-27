@@ -25,13 +25,12 @@ body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
 .filters{display:flex;gap:12px;flex-wrap:wrap;background:var(--card);padding:15px;border-radius:12px;border:1px solid var(--border);margin-bottom:20px}
 .filter-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px}
 .filter-group label{font-size:10px;text-transform:uppercase;font-weight:700;color:var(--dim);letter-spacing:.5px}
-.filter-group select{background:#0E1A29;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;outline:none}
-.info-banner{background:#0D2137;border:1px solid #1A4975;border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:#B8D4F0;display:flex;align-items:center;gap:10px;line-height:1.5}
-.info-banner b{color:#fff}
-.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:15px;margin-bottom:20px}
+.filter-group select,.filter-group input{background:#0E1A29;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;outline:none}
+.filter-group input{color-scheme:dark;cursor:text}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:20px}
 .kpi-card{background:var(--card);border:1px solid var(--border);padding:20px;border-radius:15px}
 .kpi-label{font-size:12px;color:var(--dim);font-weight:500}
-.kpi-value{font-size:24px;font-weight:800;margin-top:8px}
+.kpi-value{font-size:30px;font-weight:800;margin-top:8px}
 .charts-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:15px;margin-bottom:20px}
 .chart-full{grid-column:1/-1}
 .panel{background:var(--card);border:1px solid var(--border);padding:20px;border-radius:15px;min-height:320px}
@@ -59,8 +58,15 @@ body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
 .erro-box b{color:var(--red)}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#000;padding:12px 20px;border-radius:8px;font-weight:700;font-size:13px;display:none;z-index:1000}
 .empty-state{text-align:center;padding:80px 20px;color:var(--dim)}
-@media(max-width:1000px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}}
-@media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.dia-table-wrap{overflow-x:auto;margin-top:15px}
+.dia-table{width:100%;border-collapse:collapse;font-size:13px}
+.dia-table th{text-align:left;font-size:11px;color:var(--dim);text-transform:uppercase;padding:10px;border-bottom:1px solid var(--border);font-weight:700;background:#0E1A29}
+.dia-table td{padding:10px;border-bottom:1px solid var(--border)}
+.dia-table tr:hover td{background:rgba(245,180,0,.05)}
+.dia-table .val{text-align:right;font-weight:700}
+.dia-table .lider{color:var(--accent)}
+@media(max-width:1000px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.charts-grid{grid-template-columns:1fr}.filters{flex-direction:column}}
+@media(max-width:600px){.kpi-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -81,11 +87,6 @@ body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
 </div>
 </div>
 
-<div class="info-banner">
-<span style="font-size:18px">💡</span>
-<span>Use os filtros abaixo para visualizar os dados por <b>Mês</b>, <b>Dia</b> ou <b>Vendedor</b>.</span>
-</div>
-
 <div class="filters">
 <div class="filter-group"><label>Mês</label><select id="fMes" onchange="aplicarFiltros()"><option value="all">Todos os Meses</option></select></div>
 <div class="filter-group"><label>Dia</label><select id="fDia" onchange="aplicarFiltros()"></select></div>
@@ -96,10 +97,26 @@ body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
 
 <div class="kpi-grid">
 <div class="kpi-card"><p class="kpi-label">Total de Propostas</p><p class="kpi-value" id="kpiTotal">—</p></div>
-<div class="kpi-card"><p class="kpi-label">Média por Vendedor</p><p class="kpi-value" id="kpiMedia">—</p></div>
-<div class="kpi-card"><p class="kpi-label">Média por Dia</p><p class="kpi-value" id="kpiDia">—</p></div>
-<div class="kpi-card"><p class="kpi-label">Melhor Performance</p><p class="kpi-value" id="kpiTop" style="font-size:18px">—</p></div>
-<div class="kpi-card"><p class="kpi-label">Dias Úteis Restantes</p><p class="kpi-value" id="kpiDias">—</p></div>
+<div class="kpi-card"><p class="kpi-label">Propostas por Dia</p><p class="kpi-value" id="kpiDia">—</p></div>
+<div class="kpi-card"><p class="kpi-label">Média Geral</p><p class="kpi-value" id="kpiMedia">—</p></div>
+</div>
+
+<div class="section-title">Propostas por Dia <span class="badge">📅</span></div>
+<div class="panel" style="min-height:auto">
+<div style="display:flex;gap:15px;flex-wrap:wrap;margin-bottom:15px;align-items:end">
+<div class="filter-group" style="min-width:140px">
+<label>Data Início</label>
+<input type="date" id="fDataInicio" onchange="filtrarTabelaDias()">
+</div>
+<div class="filter-group" style="min-width:140px">
+<label>Data Fim</label>
+<input type="date" id="fDataFim" onchange="filtrarTabelaDias()">
+</div>
+<button class="btn" onclick="limparFiltroDatas()" style="background:#333;color:#fff">Limpar Filtros</button>
+</div>
+<div class="dia-table-wrap" id="tabelaDiasContainer">
+<div class="empty-state" style="padding:40px 20px;font-size:14px">Carregando dados...</div>
+</div>
 </div>
 
 <div class="section-title">Propostas por Vendedor — Ranking Geral <span class="badge">📊</span></div>
@@ -125,7 +142,7 @@ body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
 <div class="ranking-section">
 <div class="podium" id="podium"></div>
 <table class="rank-table">
-<thead><tr><th>Posição</th><th>Vendedor</th><th>Total de Propostas</th><th>Média por Dia</th></tr></thead>
+<thead><tr><th>Posição</th><th>Vendedor</th><th>Total de Propostas</th></tr></thead>
 <tbody id="rankBody"></tbody>
 </table>
 </div>
@@ -150,7 +167,7 @@ function parseData(v) {
   var s = String(v).trim(), p = s.split('/');
   if (p.length === 3) {
     var a = parseInt(p[0]), b = parseInt(p[1]), c = parseInt(p[2]);
-    if (c &lt; 100) c += 2000;
+    if (c < 100) c += 2000;
     if (a > 12) return new Date(c, b-1, a, 12, 0, 0);
     if (b > 12) return new Date(c, a-1, b, 12, 0, 0);
     return new Date(c, a-1, b, 12, 0, 0);
@@ -169,14 +186,11 @@ function toast(m) {
   t._timer = setTimeout(function(){t.style.display='none'}, 3500);
 }
 
-function diasUteisRestantes() {
-  var hoje = new Date();
-  var ultimo = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-  var count = 0;
-  var d = new Date(hoje);
-  while (d &lt;= ultimo) {
-    var diaSem = d.getDay();
-    if (diaSem !== 0 && diaSem !== 6) count++;
+function diasUteisNoPeriodo(ini, fim) {
+  var count = 0, d = new Date(ini);
+  while (d <= fim) {
+    var ds = d.getDay();
+    if (ds !== 0 && ds !== 6) count++;
     d.setDate(d.getDate() + 1);
   }
   return count;
@@ -184,7 +198,7 @@ function diasUteisRestantes() {
 
 function processar(registros) {
   var linhaDatas = -1;
-  for (var i = 0; i &lt; registros.length; i++) {
+  for (var i = 0; i < registros.length; i++) {
     var valA = String(registros[i][0] || '').toLowerCase().trim();
     if (valA === 'data') { linhaDatas = i; break; }
   }
@@ -196,7 +210,7 @@ function processar(registros) {
 
   var datas = [];
   var rowDatas = registros[linhaDatas];
-  for (var c = 1; c &lt; rowDatas.length; c++) {
+  for (var c = 1; c < rowDatas.length; c++) {
     var dt = parseData(rowDatas[c]);
     if (dt) datas.push({ col: c, data: dt });
   }
@@ -207,11 +221,11 @@ function processar(registros) {
   }
 
   dados = [];
-  for (var i = linhaDatas + 1; i &lt; registros.length; i++) {
+  for (var i = linhaDatas + 1; i < registros.length; i++) {
     var row = registros[i];
     var nome = String(row[0] || '').trim();
     if (!nome || nome.match(/^(vendedor|total|meta|)$/i)) continue;
-    for (var d = 0; d &lt; datas.length; d++) {
+    for (var d = 0; d < datas.length; d++) {
       var col = datas[d].col;
       var dt = datas[d].data;
       var val = parseNum(row[col]);
@@ -220,6 +234,7 @@ function processar(registros) {
           vendedor: nome,
           propostas: val,
           data: dt,
+          dataStr: dt.toLocaleDateString('pt-BR'),
           mes: dt.toLocaleDateString('pt-BR', {month:'long', year:'numeric'}),
           dia: dt.toLocaleDateString('pt-BR')
         });
@@ -248,7 +263,7 @@ async function carregarDados() {
   try {
     var caminhos = [CAMINHO, './propostas.xlsx', 'propostas.xlsx'];
     var buffer = null;
-    for (var c = 0; c &lt; caminhos.length; c++) {
+    for (var c = 0; c < caminhos.length; c++) {
       try {
         var url = caminhos[c] + '?_=' + Date.now();
         var r = await fetch(url, { cache: 'no-store' });
@@ -277,6 +292,17 @@ function preencherFiltros() {
   setar('fMes', uniq(dados.map(function(r){return r.mes;})));
   setar('fDia', uniq(dados.map(function(r){return r.dia;})), false);
   setar('fVendedor', uniq(dados.map(function(r){return r.vendedor;})));
+  
+  // Preenche filtros de data da tabela
+  var minDate = '', maxDate = '';
+  dados.forEach(function(r) {
+    var d = r.data;
+    var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if (!minDate || iso < minDate) minDate = iso;
+    if (!maxDate || iso > maxDate) maxDate = iso;
+  });
+  document.getElementById('fDataInicio').value = minDate;
+  document.getElementById('fDataFim').value = maxDate;
 }
 
 function aplicarFiltros() {
@@ -286,17 +312,18 @@ function aplicarFiltros() {
     vendedor: document.getElementById('fVendedor').value
   };
   filtrados = dados.filter(function(r) {
-    var matchMes = f.mes === 'all' || r.mes === f.mes;
-    var matchDia = f.dia === 'all' || r.dia === f.dia;
-    var matchVend = f.vendedor === 'all' || r.vendedor === f.vendedor;
-    return matchMes && matchDia && matchVend;
+    return (f.mes === 'all' || r.mes === f.mes) && 
+           (r.dia === f.dia) && 
+           (f.vendedor === 'all' || r.vendedor === f.vendedor);
   });
-  renderizar(f);
+  renderizar();
 }
 
-function renderizar(f) {
+function renderizar() {
   if (!filtrados.length) {
-    ['kpiTotal','kpiMedia','kpiDia','kpiTop','kpiDias'].forEach(function(id){document.getElementById(id).textContent='—';});
+    document.getElementById('kpiTotal').textContent = '—';
+    document.getElementById('kpiDia').textContent = '—';
+    document.getElementById('kpiMedia').textContent = '—';
     return;
   }
   
@@ -304,22 +331,32 @@ function renderizar(f) {
   var vendsUnicos = {};
   filtrados.forEach(function(r){ vendsUnicos[r.vendedor] = (vendsUnicos[r.vendedor]||0) + r.propostas; });
   var vendsArray = Object.keys(vendsUnicos).map(function(n) { return { nome: n, total: vendsUnicos[n] }; }).sort(function(a,b){return b.total - a.total;});
-  var qtdVends = vendsArray.length;
   
-  // Média por Dia USA o total de dias da base COMPLETA (não filtrada)
-  var todosDias = {};
-  dados.forEach(function(r) { todosDias[r.dia] = 1; });
-  var totalDiasPeriodo = Object.keys(todosDias).length;
+  // Conta dias úteis do período completo (dados, não filtrados)
+  var minD = null, maxD = null;
+  dados.forEach(function(r) {
+    if (!minD || r.data < minD) minD = r.data;
+    if (!maxD || r.data > maxD) maxD = r.data;
+  });
+  console.log('minD', minD, 'maxD', maxD);
+  var qtdDiasUteis = 1;
+  if (minD && maxD) {
+    qtdDiasUteis = diasUteisNoPeriodo(minD, maxD);
+    console.log('qtdDiasUteis', qtdDiasUteis);
+  }
   
   document.getElementById('kpiTotal').textContent = fmt(total);
-  document.getElementById('kpiMedia').textContent = fmt1(total / qtdVends);
-  document.getElementById('kpiDia').textContent = fmt1(total / totalDiasPeriodo);
-  document.getElementById('kpiTop').textContent = vendsArray.length ? vendsArray[0].nome + ' (' + fmt(vendsArray[0].total) + ')' : '—';
-  document.getElementById('kpiDias').textContent = diasUteisRestantes();
+  document.getElementById('kpiDia').textContent = fmt1(total / qtdDiasUteis) + ' prop./dia';
+  
+  // Média Geral = média das médias individuais
+  var somaMedias = 0;
+  vendsArray.forEach(function(v) { somaMedias += v.total / qtdDiasUteis; });
+  document.getElementById('kpiMedia').textContent = fmt1(somaMedias / vendsArray.length) + ' prop./vendedor';
   
   renderizarGraficos(vendsArray);
   renderizarProgresso(vendsArray);
   renderizarRanking(vendsArray);
+  filtrarTabelaDias();
 }
 
 function destruir(k) { if (graf[k]) { try { graf[k].destroy(); } catch(e) {} delete graf[k]; } }
@@ -378,18 +415,12 @@ function renderizarProgresso(vends) {
   vends.slice().sort(function(a,b){return b.total - a.total;}).forEach(function(v){
     var pct = Math.round(v.total / maxTotal * 100);
     var cor = pct >= 80 ? 'green' : (pct >= 50 ? 'yellow' : (pct >= 25 ? 'orange' : 'red'));
-    el.innerHTML += '<div class="prog-card"><div class="prog-head"><span>'+v.nome+'</span><span style="color:var(--accent)">'+fmt(v.total)+'</span></div><div class="bar-bg"><div class="bar-fill '+cor+'" style="width:'+pct+'%"></div></div><div class="prog-det"><span>📊 '+pct+'% do líder</span><span>📅 '+fmt1(v.total/(vends.length||1))+' média/dia</span></div></div>';
+    el.innerHTML += '<div class="prog-card"><div class="prog-head"><span>'+v.nome+'</span><span style="color:var(--accent)">'+fmt(v.total)+'</span></div><div class="bar-bg"><div class="bar-fill '+cor+'" style="width:'+pct+'%"></div></div><div class="prog-det"><span>📊 '+pct+'% do líder</span><span>📅 '+fmt1(v.total/(vends.length||1))+'</span></div></div>';
   });
 }
 
 function renderizarRanking(vends) {
   var ordenado = vends.slice().sort(function(a,b){return b.total - a.total;});
-  
-  // Média por Dia na tabela: total de propostas ÷ total de dias da base
-  var totalDiasUnicos = {};
-  dados.forEach(function(r) { totalDiasUnicos[r.dia] = 1; });
-  var qtdTotalDias = Object.keys(totalDiasUnicos).length;
-  
   var podiumEl = document.getElementById('podium'), rankBody = document.getElementById('rankBody');
   podiumEl.innerHTML = ''; rankBody.innerHTML = '';
   [1,0,2].forEach(function(idx) {
@@ -398,14 +429,71 @@ function renderizarRanking(vends) {
     }
   });
   ordenado.forEach(function(v,i){
-    var mediaDia = v.total / qtdTotalDias;
-    rankBody.innerHTML += '<tr>' +
-      '<td style="font-weight:800;color:var(--dim)">'+(i+1)+'º</td>' +
-      '<td style="font-weight:700">'+v.nome+'</td>' +
-      '<td style="font-weight:700;color:var(--accent)">'+fmt(v.total)+'</td>' +
-      '<td>'+fmt1(mediaDia)+'</td>' +
-      '</tr>';
+    rankBody.innerHTML += '<tr><td style="font-weight:800;color:var(--dim)">'+(i+1)+'º</td><td style="font-weight:700">'+v.nome+'</td><td style="font-weight:700;color:var(--accent)">'+fmt(v.total)+'</td></tr>';
   });
+}
+
+function filtrarTabelaDias() {
+  var el = document.getElementById('tabelaDiasContainer');
+  if (!dados.length) { el.innerHTML = '<div class="empty-state" style="padding:40px 20px;font-size:14px">Nenhum dado carregado.</div>'; return; }
+  
+  var dataInicio = document.getElementById('fDataInicio').value;
+  var dataFim = document.getElementById('fDataFim').value;
+  
+  // Filtra os dados por data e pelos filtros principais
+  var base = filtrados.length ? filtrados : dados;
+  
+  var filtradosData = base.filter(function(r) {
+    var iso = r.data.getFullYear() + '-' + String(r.data.getMonth()+1).padStart(2,'0') + '-' + String(r.data.getDate()).padStart(2,'0');
+    if (dataInicio && iso < dataInicio) return false;
+    if (dataFim && iso > dataFim) return false;
+    return true;
+  });
+  
+  // Agrupa por dia
+  var dias = {};
+  filtradosData.forEach(function(r) {
+    if (!dias[r.dia]) dias[r.dia] = { total: 0, vendedores: {} };
+    dias[r.dia].total += r.propostas;
+    dias[r.dia].vendedores[r.vendedor] = (dias[r.dia].vendedores[r.vendedor]||0) + r.propostas;
+  });
+  
+  var labsDias = Object.keys(dias).sort(function(a,b){
+    var ma=a.match(/(\d{2})\/(\d{2})\/(\d{4})/),mb=b.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if(ma&&mb) return new Date(ma[3],ma[2]-1,ma[1])-new Date(mb[3],mb[2]-1,mb[1]);
+    return a.localeCompare(b);
+  });
+  
+  if (!labsDias.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:40px 20px;font-size:14px">Nenhuma proposta encontrada no período.</div>';
+    return;
+  }
+  
+  var html = '<table class="dia-table"><thead><tr><th>Data</th><th>Total Propostas</th><th>Vendedores</th><th>Líder do Dia</th></tr></thead><tbody>';
+  labsDias.forEach(function(d) {
+    var info = dias[d];
+    var qtdVends = Object.keys(info.vendedores).length;
+    var lider = '', maxV = 0;
+    Object.keys(info.vendedores).forEach(function(v) {
+      if (info.vendedores[v] > maxV) { maxV = info.vendedores[v]; lider = v; }
+    });
+    html += '<tr><td style="font-weight:700">'+d+'</td><td class="val">'+fmt(info.total)+'</td><td>'+qtdVends+'</td><td class="lider">'+lider+' ('+fmt(maxV)+')</td></tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function limparFiltroDatas() {
+  var minDate = '', maxDate = '';
+  dados.forEach(function(r) {
+    var d = r.data;
+    var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if (!minDate || iso < minDate) minDate = iso;
+    if (!maxDate || iso > maxDate) maxDate = iso;
+  });
+  document.getElementById('fDataInicio').value = minDate;
+  document.getElementById('fDataFim').value = maxDate;
+  filtrarTabelaDias();
 }
 
 carregarDados();
