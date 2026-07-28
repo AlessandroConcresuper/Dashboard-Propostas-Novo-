@@ -3,75 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Comercial | Concresuper - Matriz Operacional</title>
+    <title>Dashboard Comercial | Concresuper</title>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- TEMA ESCURO --- */
+        /* --- CONFIGURAÇÕES DE TEMA ESCURO --- */
+        :root {
+            --bg: #0f1419;
+            --card: #1a1f2e;
+            --border: #2d3748;
+            --yellow: #f7c948;
+            --muted: #94a3b8;
+            --header-table: #252b3d;
+            --white: #ffffff;
+            --green: #10b981;
+            --red: #f43f5e;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: #0f1419; color: #fff; padding: 20px; line-height: 1.5; }
-        :root { --bg: #0f1419; --card: #1a1f2e; --border: #2d3748; --yellow: #f7c948; --muted: #94a3b8; --header-bg: #252b3d; --hover: #222a3d; --green: #10b981; }
+        body { background-color: var(--bg); color: var(--white); padding: 20px; line-height: 1.5; }
 
         /* --- HEADER --- */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 20px; }
         .brand { display: flex; align-items: center; gap: 14px; }
-        .logo-c { width: 42px; height: 42px; background: var(--yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; color: #000; }
+        .logo-c { width: 45px; height: 45px; background: var(--yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; color: #000; }
         .brand h1 { font-size: 20px; font-weight: 700; }
         .brand p { font-size: 13px; color: var(--muted); }
         .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .current-date { color: var(--muted); font-size: 14px; margin-right: 8px; }
-        select, input[type="text"], input[type="date"] { background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; cursor: pointer; }
+        .current-date { color: var(--muted); font-size: 14px; margin-right: 10px; }
+        select, input[type="date"], input[type="text"] { background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; cursor: pointer; }
 
-        /* --- KPIs (3 CARDS) --- */
+        /* --- KPI CARDS (3 CARDS) --- */
         .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        .kpi-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
-        .kpi-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .kpi-value { font-size: 32px; font-weight: 700; }
+        .kpi-card { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+        .kpi-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .kpi-value { font-size: 36px; font-weight: 700; }
         .kpi-value.gold { color: var(--yellow); }
 
         /* --- SEÇÕES --- */
         .section-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 25px; }
-        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
 
         /* --- FILTROS TABELA --- */
-        .table-filters { display: flex; gap: 12px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; }
-        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .filter-row { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; }
         .btn-filter { background: var(--yellow); color: #000; }
         .btn-clear { background: #334155; color: white; }
         .btn:hover { opacity: 0.8; }
 
         /* --- TABELA --- */
-        .table-scroll { overflow-x: auto; max-height: 600px; }
+        .table-container { overflow-x: auto; max-height: 500px; border-radius: 4px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
-        thead th { background: var(--header-bg); color: var(--yellow); padding: 12px 8px; border: 1px solid var(--border); position: sticky; top: 0; z-index: 10; white-space: nowrap; }
+        thead th { background: var(--header-table); color: var(--yellow); padding: 12px 8px; border: 1px solid var(--border); position: sticky; top: 0; z-index: 10; white-space: nowrap; }
         tbody td { padding: 10px 8px; border: 1px solid var(--border); }
-        .sticky-col { position: sticky; left: 0; background: #1e2536; text-align: left; font-weight: 600; z-index: 5; min-width: 120px; }
-        tbody tr:hover td { background: var(--hover); }
+        .sticky-col { position: sticky; left: 0; background: #1e2536; text-align: left; font-weight: 600; z-index: 5; min-width: 130px; }
+        tbody tr:hover td { background: #222a3d; }
         .row-total { background: #1e2536; font-weight: 700; color: var(--yellow); }
         .row-media { background: #161b28; font-weight: 600; color: var(--green); }
 
         /* --- GRÁFICOS --- */
         .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .chart-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); height: 380px; position: relative; }
-        .chart-select-overlay { position: absolute; top: 15px; right: 20px; z-index: 5; }
+        .chart-header-select { position: absolute; top: 15px; right: 20px; z-index: 5; }
 
-        /* --- PÓDIO + RANKING --- */
+        /* --- PÓDIO E RANKING --- */
         .ranking-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
-        .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 15px; padding: 40px 10px 20px; min-height: 320px; }
+        .podium-box { display: flex; justify-content: center; align-items: flex-end; gap: 15px; padding: 40px 10px 20px; min-height: 320px; }
         .podium-item { display: flex; flex-direction: column; align-items: center; width: 110px; }
-        .podium-name { font-weight: 600; font-size: 14px; margin-bottom: 8px; text-align: center; }
+        .podium-name { font-weight: 600; font-size: 14px; margin-bottom: 10px; text-align: center; }
         .podium-bar { width: 100%; border-radius: 8px 8px 0 0; display: flex; flex-direction: column; align-items: center; padding-top: 15px; font-weight: 700; }
         .p1 { height: 200px; background: linear-gradient(to top, #b8860b, #f7c948); color: #000; }
         .p2 { height: 150px; background: linear-gradient(to top, #6b7280, #cbd5e0); color: #000; }
         .p3 { height: 110px; background: linear-gradient(to top, #92400e, #d97706); color: #fff; }
-        .medal-icon { font-size: 32px; margin-bottom: 5px; }
+        .medal { font-size: 32px; margin-bottom: 5px; }
 
-        @media (max-width: 1024px) { .charts-grid, .ranking-grid, .kpi-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1024px) {
+            .charts-grid, .ranking-grid, .kpi-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- ==================== HEADER ==================== -->
+    <!-- HEADER -->
     <header>
         <div class="brand">
             <div class="logo-c">C</div>
@@ -97,15 +110,15 @@
         </div>
     </header>
 
-    <!-- ==================== KPIs (3 CARDS) ==================== -->
+    <!-- KPIs -->
     <div class="kpi-grid">
         <div class="kpi-card">
             <div class="kpi-label">Total de Propostas</div>
-            <div class="kpi-value" id="kpiTotal">303</div>
+            <div class="kpi-value" id="kpiTotal">0</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Melhor Performance</div>
-            <div class="kpi-value gold" id="kpiMelhor">Alex (55)</div>
+            <div class="kpi-value gold" id="kpiMelhor">-</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">Dias Úteis Restantes</div>
@@ -113,18 +126,18 @@
         </div>
     </div>
 
-    <!-- ==================== TABELA ACOMPANHAMENTO ==================== -->
+    <!-- TABELA ACOMPANHAMENTO -->
     <div class="section-card">
         <div class="section-title">📊 Acompanhamento Diário de Propostas</div>
-        <div class="table-filters">
-            <label style="color:var(--muted);font-size:13px;">Início:</label>
+        <div class="filter-row">
+            <label style="color:var(--muted); font-size:13px;">Início:</label>
             <input type="date" id="dateStart" value="2026-07-01">
-            <label style="color:var(--muted);font-size:13px;">Fim:</label>
+            <label style="color:var(--muted); font-size:13px;">Fim:</label>
             <input type="date" id="dateEnd" value="2026-07-31">
             <button class="btn btn-filter" onclick="updateDashboard()">Filtrar Período</button>
             <button class="btn btn-clear" onclick="resetPeriodo()">Limpar</button>
         </div>
-        <div class="table-scroll">
+        <div class="table-container">
             <table id="mainTable">
                 <thead>
                     <tr id="tableHeadRow">
@@ -138,11 +151,11 @@
         </div>
     </div>
 
-    <!-- ==================== GRÁFICOS ==================== -->
+    <!-- GRÁFICOS -->
     <div class="charts-grid">
         <div class="chart-card"><canvas id="chartVolumeDiario"></canvas></div>
         <div class="chart-card">
-            <div class="chart-select-overlay">
+            <div class="chart-header-select">
                 <select id="selectVendMeta" onchange="updateChartMeta()"></select>
             </div>
             <canvas id="chartMeta"></canvas>
@@ -151,7 +164,7 @@
     <div class="charts-grid">
         <div class="chart-card"><canvas id="chartRosca"></canvas></div>
         <div class="chart-card">
-            <div class="chart-select-overlay">
+            <div class="chart-header-select">
                 <select id="selectVendBarra" onchange="updateChartBarra()">
                     <option value="all">Todos os Vendedores</option>
                 </select>
@@ -160,20 +173,20 @@
         </div>
     </div>
 
-    <!-- ==================== PÓDIO + RANKING ==================== -->
+    <!-- PÓDIO E RANKING -->
     <div class="ranking-grid">
         <div class="section-card" style="margin-bottom:0;">
             <div class="section-title">🏆 Classificação Geral</div>
-            <div class="podium-container" id="podiumBox"></div>
+            <div class="podium-box" id="podiumBox"></div>
         </div>
         <div class="section-card" style="margin-bottom:0;">
-            <div class="table-filters">
+            <div class="filter-row">
                 <select id="rankFiltroVend" onchange="renderRanking()">
                     <option value="all">Filtrar Vendedor: Todos</option>
                 </select>
                 <input type="text" id="rankBusca" placeholder="🔍 Buscar vendedor..." oninput="renderRanking()">
             </div>
-            <div class="table-scroll">
+            <div class="table-container">
                 <table>
                     <thead><tr><th>Pos</th><th style="text-align:left;">Vendedor</th><th>Total</th><th>Média/Dia</th></tr></thead>
                     <tbody id="rankBody"></tbody>
@@ -184,47 +197,48 @@
 
     <script>
         /* ============================================================
-           🔧 DADOS — ALTERE AQUI OS VALORES REAIS
+           🔧 SEUS DADOS — ALTERE AQUI IGUAL À PLANILHA
            ============================================================ */
-        const VENDEDORES = [
-            { nome: "Alex", total: 55 },
-            { nome: "Diego", total: 52 },
-            { nome: "Michel", total: 41 },
-            { nome: "Junior", total: 38 },
+
+        // Configure aqui os vendedores e seus totais do mês
+        const VENDEDORES_CONFIG = [
+            { nome: "Alex",    total: 55 },
+            { nome: "Diego",   total: 52 },
+            { nome: "Michel",  total: 41 },
+            { nome: "Junior",  total: 38 },
             { nome: "Marcelo", total: 35 },
-            { nome: "Cesar", total: 28 },
-            { nome: "Diogo", total: 22 },
+            { nome: "Cesar",   total: 28 },
+            { nome: "Diogo",   total: 22 },
             { nome: "Eduardo", total: 18 },
             { nome: "Emerson", total: 12 },
-            { nome: "Lucas", total: 2 }
+            { nome: "Lucas",   total: 2 }
         ];
 
-        const CORES = ['#f7c948','#3b82f6','#10b981','#f43f5e','#8b5cf6','#f97316','#06b6d4','#ec4899','#84cc16','#6366f1'];
-
-        // Gera dias úteis de Julho/2026
-        const DIAS_JULHO = [];
+        // Calendário de Julho/2026
+        const DIAS_MES = [];
         for (let i = 1; i <= 31; i++) {
             const data = new Date(2026, 6, i);
-            if (data.getDay() !== 0 && data.getDay() !== 6) {
-                DIAS_JULHO.push({
-                    dia: i,
-                    formatado: i.toString().padStart(2, '0') + '/07',
-                    full: `2026-07-${i.toString().padStart(2, '0')}`
-                });
-            }
+            DIAS_MES.push({
+                dia: i,
+                full: `2026-07-${i.toString().padStart(2, '0')}`,
+                formatado: i.toString().padStart(2, '0') + '/07',
+                isUtil: data.getDay() !== 0 && data.getDay() !== 6
+            });
         }
 
-        // Distribui os totais pelos dias úteis
-        const MATRIZ = VENDEDORES.map(v => {
+        // Gera a matriz de dados (distribui os totais pelos dias úteis)
+        const PLANILHA_DADOS = VENDEDORES_CONFIG.map(v => {
             let resto = v.total;
-            let dados = new Array(DIAS_JULHO.length).fill(0);
+            let propostas = new Array(31).fill(0);
+            const indicesUteis = DIAS_MES.filter(d => d.isUtil).map(d => d.dia - 1);
             while (resto > 0) {
-                dados[Math.floor(Math.random() * DIAS_JULHO.length)]++;
+                propostas[indicesUteis[Math.floor(Math.random() * indicesUteis.length)]]++;
                 resto--;
             }
-            return { ...v, dados };
+            return { vendedor: v.nome, propostas, totalGeral: v.total };
         });
 
+        const CORES = ['#f7c948','#3b82f6','#10b981','#f43f5e','#8b5cf6','#f97316','#06b6d4','#ec4899','#84cc16','#6366f1'];
         let charts = {};
 
         window.onload = () => {
@@ -237,17 +251,11 @@
             const hDia = document.getElementById('headerDia');
             for (let i = 1; i <= 31; i++) hDia.innerHTML += `<option value="${i}">${i}</option>`;
 
-            const hVend = document.getElementById('headerVendedor');
-            const sMeta = document.getElementById('selectVendMeta');
-            const sBarra = document.getElementById('selectVendBarra');
-            const sRank = document.getElementById('rankFiltroVend');
-
-            VENDEDORES.forEach(v => {
-                const opt = `<option value="${v.nome}">${v.nome}</option>`;
-                hVend.innerHTML += opt;
-                sMeta.innerHTML += opt;
-                sBarra.innerHTML += opt;
-                sRank.innerHTML += opt;
+            [document.getElementById('headerVendedor'),
+             document.getElementById('selectVendMeta'),
+             document.getElementById('selectVendBarra'),
+             document.getElementById('rankFiltroVend')].forEach(s => {
+                PLANILHA_DADOS.forEach(v => s.innerHTML += `<option value="${v.vendedor}">${v.vendedor}</option>`);
             });
         }
 
@@ -257,36 +265,32 @@
             updateDashboard();
         }
 
-        /* ============================================================
-           FILTRAGEM PRINCIPAL — OS FILTROS DO HEADER FUNCIONAM AQUI
-           ============================================================ */
         function updateDashboard() {
-            const filtroDia = document.getElementById('headerDia').value;
-            const filtroVend = document.getElementById('headerVendedor').value;
+            const fDia = document.getElementById('headerDia').value;
+            const fVend = document.getElementById('headerVendedor').value;
             const dStart = document.getElementById('dateStart').value;
             const dEnd = document.getElementById('dateEnd').value;
 
-            // Filtra dias pelo período e pelo dia específico
-            let diasFiltrados = DIAS_JULHO.filter(d => d.full >= dStart && d.full <= dEnd);
-            if (filtroDia !== 'all') {
-                diasFiltrados = diasFiltrados.filter(d => d.dia == filtroDia);
-            }
+            let dias = DIAS_MES.filter(d => d.full >= dStart && d.full <= dEnd && d.isUtil);
+            if (fDia !== 'all') dias = dias.filter(d => d.dia == fDia);
 
-            // Filtra vendedores
-            let vendsFiltrados = MATRIZ;
-            if (filtroVend !== 'all') {
-                vendsFiltrados = MATRIZ.filter(v => v.nome === filtroVend);
-            }
+            let vends = PLANILHA_DADOS;
+            if (fVend !== 'all') vends = PLANILHA_DADOS.filter(v => v.vendedor === fVend);
 
-            renderTabela(diasFiltrados, vendsFiltrados);
+            renderTabela(dias, vends);
+            updateKPIs();
             renderRanking();
             renderPodium();
-            updateCharts(diasFiltrados);
+            updateCharts(dias);
         }
 
-        /* ============================================================
-           RENDERIZAÇÃO
-           ============================================================ */
+        function updateKPIs() {
+            const total = PLANILHA_DADOS.reduce((acc, v) => acc + v.totalGeral, 0);
+            document.getElementById('kpiTotal').textContent = total;
+            const melhor = [...PLANILHA_DADOS].sort((a, b) => b.totalGeral - a.totalGeral)[0];
+            document.getElementById('kpiMelhor').textContent = `${melhor.vendedor} (${melhor.totalGeral})`;
+        }
+
         function renderTabela(dias, vends) {
             const head = document.getElementById('tableHeadRow');
             const body = document.getElementById('tableBody');
@@ -301,32 +305,27 @@
             let somaGeral = 0;
 
             vends.forEach(v => {
-                let tr = `<tr><td class="sticky-col">${v.nome}</td>`;
-                let somaLinha = 0;
-                dias.forEach((d, idx) => {
-                    const origIdx = DIAS_JULHO.findIndex(orig => orig.full === d.full);
-                    const val = v.dados[origIdx];
+                let tr = `<tr><td class="sticky-col">${v.vendedor}</td>`;
+                let sl = 0;
+                dias.forEach((d, i) => {
+                    const val = v.propostas[d.dia - 1];
                     tr += `<td>${val}</td>`;
-                    somaLinha += val;
-                    totaisPorDia[idx] += val;
+                    sl += val;
+                    totaisPorDia[i] += val;
                 });
-                tr += `<td style="font-weight:bold;color:var(--yellow);">${somaLinha}</td></tr>`;
+                tr += `<td style="font-weight:bold;color:var(--yellow);">${sl}</td></tr>`;
                 body.innerHTML += tr;
-                somaGeral += somaLinha;
+                somaGeral += sl;
             });
 
-            let trTotal = `<tr class="row-total"><td class="sticky-col">TOTAL GERAL</td>`;
-            totaisPorDia.forEach(t => trTotal += `<td>${t}</td>`);
-            trTotal += `<td>${somaGeral}</td></tr>`;
+            let ft = `<tr class="row-total"><td class="sticky-col">TOTAL GERAL</td>`;
+            totaisPorDia.forEach(t => ft += `<td>${t}</td>`);
+            ft += `<td>${somaGeral}</td></tr>`;
 
-            let trMedia = `<tr class="row-media"><td class="sticky-col">MÉDIA</td>`;
-            totaisPorDia.forEach(t => {
-                const m = vends.length > 0 ? (t / vends.length).toFixed(1) : 0;
-                trMedia += `<td>${m}</td>`;
-            });
-            trMedia += `<td>-</td></tr>`;
-
-            foot.innerHTML = trTotal + trMedia;
+            ft += `<tr class="row-media"><td class="sticky-col">MÉDIA</td>`;
+            totaisPorDia.forEach(t => ft += `<td>${vends.length > 0 ? (t/vends.length).toFixed(1) : 0}</td>`);
+            ft += `<td>-</td></tr>`;
+            foot.innerHTML = ft;
         }
 
         function renderRanking() {
@@ -335,89 +334,82 @@
             const body = document.getElementById('rankBody');
             body.innerHTML = '';
 
-            const filtrados = MATRIZ.filter(v =>
-                (filtro === 'all' || v.nome === filtro) &&
-                v.nome.toLowerCase().includes(busca)
-            ).sort((a, b) => b.total - a.total);
+            const filtrados = PLANILHA_DADOS.filter(v =>
+                (filtro === 'all' || v.vendedor === filtro) &&
+                v.vendedor.toLowerCase().includes(busca)
+            ).sort((a, b) => b.totalGeral - a.totalGeral);
 
             filtrados.forEach((v, i) => {
-                const pos = MATRIZ.sort((a,b) => b.total - a.total).findIndex(x => x.nome === v.nome) + 1;
-                body.innerHTML += `<tr><td style="color:var(--yellow);font-weight:bold;">${pos}º</td><td style="text-align:left;font-weight:600;">${v.nome}</td><td>${v.total}</td><td>${(v.total / DIAS_JULHO.length).toFixed(1)}</td></tr>`;
+                body.innerHTML += `<tr><td style="color:var(--yellow);font-weight:bold;">${i+1}º</td><td style="text-align:left;font-weight:600;">${v.vendedor}</td><td>${v.totalGeral}</td><td>${(v.totalGeral/DIAS_MES.filter(d=>d.isUtil).length).toFixed(1)}</td></tr>`;
             });
         }
 
         function renderPodium() {
-            const sorted = [...MATRIZ].sort((a, b) => b.total - a.total);
+            const sorted = [...PLANILHA_DADOS].sort((a, b) => b.totalGeral - a.totalGeral);
             const box = document.getElementById('podiumBox');
-            const top3 = [
-                { v: sorted[1], c: 'p2', m: '🥈', p: '2º' },
-                { v: sorted[0], c: 'p1', m: '🥇', p: '1º' },
-                { v: sorted[2], c: 'p3', m: '🥉', p: '3º' }
-            ];
-            box.innerHTML = top3.map(item => `
+            box.innerHTML = [
+                { v: sorted[1], c: 'p2', m: '🥈' },
+                { v: sorted[0], c: 'p1', m: '🥇' },
+                { v: sorted[2], c: 'p3', m: '🥉' }
+            ].map(item => `
                 <div class="podium-item">
-                    <div class="podium-name">${item.v.nome}</div>
+                    <div class="podium-name">${item.v.vendedor}</div>
                     <div class="podium-bar ${item.c}">
-                        <div class="medal-icon">${item.m}</div>
-                        <div style="font-size:22px;">${item.v.total}</div>
-                        <div style="font-size:12px;font-weight:400;">${item.p}</div>
+                        <div class="medal">${item.m}</div>
+                        <div style="font-size:22px;">${item.v.totalGeral}</div>
                     </div>
                 </div>
             `).join('');
         }
 
-        /* ============================================================
-           GRÁFICOS
-           ============================================================ */
         function initCharts() {
             Chart.defaults.color = '#94a3b8';
             Chart.defaults.borderColor = '#2d3748';
-
             charts.vol = new Chart(document.getElementById('chartVolumeDiario'), {
                 type: 'line',
-                data: { labels: DIAS_JULHO.map(d => d.formatado), datasets: [{ label: 'Propostas', data: DIAS_JULHO.map((_, i) => MATRIZ.reduce((acc, v) => acc + v.dados[i], 0)), borderColor: '#f7c948', backgroundColor: 'rgba(247,201,72,0.1)', fill: true, tension: 0.4 }] },
+                data: { labels: [], datasets: [{ label: 'Propostas', data: [], borderColor: '#f7c948', backgroundColor: 'rgba(247,201,72,0.1)', fill: true, tension: 0.4 }] },
                 options: chartOpts('📈 Volume Diário de Propostas Registradas')
             });
-
             charts.meta = new Chart(document.getElementById('chartMeta'), {
                 type: 'line',
-                data: { labels: DIAS_JULHO.map(d => d.formatado), datasets: [
-                    { label: 'Realizado', data: MATRIZ[0].dados, borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3 },
-                    { label: 'Meta (5/dia)', data: Array(DIAS_JULHO.length).fill(5), borderColor: '#f43f5e', borderDash: [5,5], pointRadius: 0 }
+                data: { labels: [], datasets: [
+                    { label: 'Realizado', data: [], borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3 },
+                    { label: 'Meta (5/dia)', data: [], borderColor: '#f43f5e', borderDash: [5,5], pointRadius: 0 }
                 ]},
                 options: chartOpts('🎯 Desempenho Individual vs Meta Diária')
             });
-
             charts.rosca = new Chart(document.getElementById('chartRosca'), {
                 type: 'doughnut',
-                data: { labels: VENDEDORES.map(v => v.nome), datasets: [{ data: VENDEDORES.map(v => v.total), backgroundColor: CORES, borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: '🍩 Distribuição de Propostas por Vendedor (%)', color: '#fff', font: { size: 14 } }, legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } } } }
+                data: { labels: PLANILHA_DADOS.map(v=>v.vendedor), datasets: [{ data: PLANILHA_DADOS.map(v=>v.totalGeral), backgroundColor: CORES, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: {
+                    title: { display: true, text: '🍩 Distribuição de Propostas por Vendedor (%)', color: '#fff', font: { size: 14 } },
+                    legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } }
+                }}
             });
-
             charts.bar = new Chart(document.getElementById('chartBarras'), {
                 type: 'bar',
-                data: { labels: VENDEDORES.map(v => v.nome), datasets: [{ label: 'Propostas', data: VENDEDORES.map(v => v.total), backgroundColor: CORES, borderRadius: 4 }] },
+                data: { labels: PLANILHA_DADOS.map(v=>v.vendedor), datasets: [{ label: 'Propostas', data: PLANILHA_DADOS.map(v=>v.totalGeral), backgroundColor: CORES, borderRadius: 4 }] },
                 options: chartOpts('📊 Comparativo de Propostas Entre Vendedores')
             });
         }
 
-        function updateCharts(diasAtivos) {
-            const labels = diasAtivos.map(d => d.formatado);
-            const indices = diasAtivos.map(d => DIAS_JULHO.findIndex(orig => orig.full === d.full));
+        function updateCharts(dias) {
+            const labels = dias.map(d => d.formatado);
             charts.vol.data.labels = labels;
-            charts.vol.data.datasets[0].data = indices.map(idx => MATRIZ.reduce((acc, v) => acc + v.dados[idx], 0));
+            charts.vol.data.datasets[0].data = dias.map(d => PLANILHA_DADOS.reduce((acc, v) => acc + v.propostas[d.dia-1], 0));
             charts.vol.update();
             updateChartMeta();
         }
 
         function updateChartMeta() {
-            const nome = document.getElementById('selectVendMeta').value;
-            const vend = MATRIZ.find(v => v.nome === nome);
+            const nome = document.getElementById('selectVendMeta').value || PLANILHA_DADOS[0].vendedor;
+            const vend = PLANILHA_DADOS.find(v => v.vendedor === nome);
             const dStart = document.getElementById('dateStart').value;
             const dEnd = document.getElementById('dateEnd').value;
-            const diasFiltrados = DIAS_JULHO.filter(d => d.full >= dStart && d.full <= dEnd);
-            charts.meta.data.labels = diasFiltrados.map(d => d.formatado);
-            charts.meta.data.datasets[0].data = diasFiltrados.map(d => { const idx = DIAS_JULHO.findIndex(orig => orig.full === d.full); return vend.dados[idx]; });
+            const dias = DIAS_MES.filter(d => d.full >= dStart && d.full <= dEnd && d.isUtil);
+            charts.meta.data.labels = dias.map(d => d.formatado);
+            charts.meta.data.datasets[0].data = dias.map(d => vend.propostas[d.dia-1]);
+            charts.meta.data.datasets[1].data = new Array(dias.length).fill(5);
             charts.meta.data.datasets[0].label = nome;
             charts.meta.options.plugins.title.text = `🎯 Desempenho Individual: ${nome} vs Meta Diária`;
             charts.meta.update();
@@ -426,19 +418,45 @@
         function updateChartBarra() {
             const val = document.getElementById('selectVendBarra').value;
             if (val === 'all') {
-                charts.bar.data.labels = VENDEDORES.map(v => v.nome);
-                charts.bar.data.datasets[0].data = VENDEDORES.map(v => v.total);
+                charts.bar.data.labels = PLANILHA_DADOS.map(v=>v.vendedor);
+                charts.bar.data.datasets[0].data = PLANILHA_DADOS.map(v=>v.totalGeral);
             } else {
-                const v = VENDEDORES.find(x => x.nome === val);
-                charts.bar.data.labels = [v.nome];
-                charts.bar.data.datasets[0].data = [v.total];
+                const v = PLANILHA_DADOS.find(x => x.vendedor === val);
+                charts.bar.data.labels = [v.vendedor];
+                charts.bar.data.datasets[0].data = [v.totalGeral];
             }
             charts.bar.update();
         }
 
         function chartOpts(title) {
-            return { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: title, color: '#fff', font: { size: 14 } }, legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#2d3748' } }, x: { grid: { display: false } } } };
+            return { responsive: true, maintainAspectRatio: false,
+                plugins: { title: { display: true, text: title, color: '#fff', font: { size: 14 } }, legend: { display: false } },
+                scales: { y: { beginAtZero: true, grid: { color: '#2d3748' } }, x: { grid: { display: false } } }
+            };
         }
     </script>
+
+    <!--
+    📝 COMO ALIMENTAR O DASHBOARD COM SUA PLANILHA:
+
+    1. Abra o arquivo index.html num editor de texto
+    2. Localize a const VENDEDORES_CONFIG no início do <script>
+    3. Altere os nomes e totais conforme sua planilha
+
+    Exemplo com dados reais:
+    const VENDEDORES_CONFIG = [
+        { nome: "Alex", total: 55 },
+        { nome: "Diego", total: 52 },
+        ...
+    ];
+
+    O total é a SOMA de todas as propostas do mês para aquele vendedor.
+    O sistema distribui automaticamente pelos dias úteis.
+
+    Para usar valores exatos por dia (como na planilha):
+    - Procure a const PLANILHA_DADOS
+    - Substitua a linha do while por:
+      propostas: [0,2,3,0,0,5,...] // 31 números, um pra cada dia
+    -->
 </body>
 </html>
