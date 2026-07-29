@@ -58,7 +58,6 @@
         .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .chart-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); height: 380px; position: relative; }
         .chart-header-select { position: absolute; top: 15px; right: 20px; z-index: 5; }
-
         .mini-charts-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
         .mini-chart-card { background: var(--card); padding: 10px; border-radius: 8px; border: 1px solid var(--border); height: 200px; position: relative; }
 
@@ -76,9 +75,7 @@
             .charts-grid, .ranking-grid, .kpi-grid { grid-template-columns: 1fr; }
             .mini-charts-grid { grid-template-columns: repeat(3, 1fr); }
         }
-        @media (max-width: 600px) {
-            .mini-charts-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        @media (max-width: 600px) { .mini-charts-grid { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
@@ -126,9 +123,9 @@
 <div class="section-card">
     <div class="section-title">📊 Acompanhamento Diário de Propostas</div>
     <div class="filter-row">
-        <label style="color:var(--muted); font-size:13px;">Início:</label>
+        <label style="color:var(--muted);font-size:13px;">Início:</label>
         <input type="date" id="dateStart" value="2026-07-01">
-        <label style="color:var(--muted); font-size:13px;">Fim:</label>
+        <label style="color:var(--muted);font-size:13px;">Fim:</label>
         <input type="date" id="dateEnd" value="2026-07-31">
         <button class="btn btn-filter" onclick="updateDashboard()">Filtrar Período</button>
         <button class="btn btn-clear" onclick="resetPeriodo()">Limpar</button>
@@ -192,6 +189,7 @@
 <script>
     let DADOS_PLANILHA = {};
 
+    // Gera o calendário de dias úteis de Julho/2026
     const DIAS_MES = [];
     for (let i = 1; i <= 31; i++) {
         const data = new Date(2026, 6, i);
@@ -214,32 +212,36 @@
     };
 
     async function carregarDados() {
-      try {
-        const response = await fetch('propostas.xlsx');
-        if (!response.ok) throw new Error("Arquivo propostas.xlsx não encontrado.");
-        const arrayBuffer = await response.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const dados = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        const DADOS = {};
+        try {
+            const response = await fetch('propostas.xlsx');
+            if (!response.ok) throw new Error("Arquivo propostas.xlsx não encontrado.");
+            const arrayBuffer = await response.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const dados = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            const DADOS = {};
 
-        for (let i = 2; i < dados.length; i++) {
-          const linha = dados[i];
-          const nome = linha[0];
-          if (!nome) continue;
-          const propostas = [];
-          for (let j = 1; j <= 31; j++) {
-            const valor = parseInt(linha[j]) || 0;
-            propostas.push(valor);
-          }
-          DADOS[nome] = propostas;
+            // Linha 0 = cabeçalho (vendedor, dia_1...)
+            // Linha 1 = datas
+            // Linha 2 em diante = vendedores
+            for (let i = 2; i < dados.length; i++) {
+                const linha = dados[i];
+                const nome = linha[0];
+                if (!nome) continue;
+                const propostas = [];
+                for (let j = 1; j <= 31; j++) {
+                    const valor = parseInt(linha[j]) || 0;
+                    propostas.push(valor);
+                }
+                DADOS[nome] = propostas;
+            }
+            DADOS_PLANILHA = DADOS;
+        } catch (error) {
+            console.error("Erro ao carregar dados:", error);
+            document.getElementById('kpiTotal').textContent = "Erro";
+            document.getElementById('kpiMelhor').textContent = "Sem planilha";
         }
-        DADOS_PLANILHA = DADOS;
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-        alert("Erro ao carregar 'propostas.xlsx'. Verifique se o arquivo existe na mesma pasta.");
-      }
     }
 
     function initSelects() {
@@ -323,7 +325,7 @@
         totaisPorDia.forEach(t => ft += `<td>${t}</td>`);
         ft += `<td>${somaGeral}</td></tr>`;
         ft += `<tr class="row-media"><td class="sticky-col">MÉDIA</td>`;
-        totaisPorDia.forEach(t => ft += `<td>${nomes.length > 0 ? (t/nomes.length).toFixed(1) : 0}</td>`);
+        totaisPorDia.forEach(t => ft += `<td>${nomes.length ? (t/nomes.length).toFixed(1) : 0}</td>`);
         ft += `<td>-</td></tr>`;
         foot.innerHTML = ft;
     }
@@ -383,16 +385,12 @@
             card.className = 'mini-chart-card';
             card.innerHTML = `<canvas id="chart-${nome}"></canvas>`;
             container.appendChild(card);
-
             charts.mini[nome] = new Chart(document.getElementById(`chart-${nome}`), {
                 type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        { label: 'Realizado', data: [], borderColor: CORES[index % CORES.length], tension: 0.3, pointRadius: 2 },
-                        { label: 'Meta', data: [], borderColor: '#f43f5e', borderDash: [5,5], pointRadius: 0, fill: false }
-                    ]
-                },
+                data: { labels: [], datasets: [
+                    { label: 'Realizado', data: [], borderColor: CORES[index % CORES.length], tension: 0.3, pointRadius: 2 },
+                    { label: 'Meta', data: [], borderColor: '#f43f5e', borderDash: [5,5], pointRadius: 0, fill: false }
+                ]},
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { title: { display: true, text: nome, color: '#fff', font: { size: 12 } }, legend: { display: false } },
@@ -458,6 +456,5 @@
         };
     }
 </script>
-
 </body>
 </html>
