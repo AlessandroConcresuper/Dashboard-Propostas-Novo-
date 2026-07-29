@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Comercial | Concresuper - Matriz Operacional</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg: #0f1419;
@@ -16,10 +16,12 @@
             --header-table: #252b3d;
             --white: #ffffff;
             --green: #10b981;
+            --red: #f43f5e;
             --hover: #222a3d;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: var(--bg); color: var(--white); padding: 20px; line-height: 1.5; }
+
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 20px; }
         .brand { display: flex; align-items: center; gap: 14px; }
         .logo-c { width: 45px; height: 45px; background: var(--yellow); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; color: #000; }
@@ -28,18 +30,22 @@
         .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         .current-date { color: var(--muted); font-size: 14px; margin-right: 10px; }
         select, input[type="date"], input[type="text"] { background: var(--card); color: white; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; cursor: pointer; }
+
         .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         .kpi-card { background: var(--card); padding: 25px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
         .kpi-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
         .kpi-value { font-size: 36px; font-weight: 700; }
         .kpi-value.gold { color: var(--yellow); }
+
         .section-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 25px; }
         .section-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
         .filter-row { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
-        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; }
         .btn-filter { background: var(--yellow); color: #000; }
         .btn-clear { background: #334155; color: white; }
         .btn:hover { opacity: 0.8; }
+
         .table-container { overflow-x: auto; max-height: 500px; border-radius: 4px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
         thead th { background: var(--header-table); color: var(--yellow); padding: 12px 8px; border: 1px solid var(--border); position: sticky; top: 0; z-index: 10; white-space: nowrap; }
@@ -48,9 +54,14 @@
         tbody tr:hover td { background: var(--hover); }
         .row-total { background: #1e2536; font-weight: 700; color: var(--yellow); }
         .row-media { background: #161b28; font-weight: 600; color: var(--green); }
+
         .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .chart-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); height: 380px; position: relative; }
         .chart-header-select { position: absolute; top: 15px; right: 20px; z-index: 5; }
+
+        .mini-charts-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .mini-chart-card { background: var(--card); padding: 10px; border-radius: 8px; border: 1px solid var(--border); height: 200px; position: relative; }
+
         .ranking-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
         .podium-box { display: flex; justify-content: center; align-items: flex-end; gap: 15px; padding: 40px 10px 20px; min-height: 320px; }
         .podium-item { display: flex; flex-direction: column; align-items: center; width: 110px; }
@@ -60,7 +71,14 @@
         .p2 { height: 150px; background: linear-gradient(to top, #6b7280, #cbd5e0); color: #000; }
         .p3 { height: 110px; background: linear-gradient(to top, #92400e, #d97706); color: #fff; }
         .medal { font-size: 32px; margin-bottom: 5px; }
-        @media (max-width: 1024px) { .charts-grid, .ranking-grid, .kpi-grid { grid-template-columns: 1fr; } }
+
+        @media (max-width: 1024px) {
+            .charts-grid, .ranking-grid, .kpi-grid { grid-template-columns: 1fr; }
+            .mini-charts-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .mini-charts-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
@@ -74,12 +92,12 @@
         </div>
     </div>
     <div class="header-controls">
-        <span class="current-date" id="dataAtual"></span>
-        <select id="headerMes" onchange="trocarMes()">
-            <option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option>
-            <option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option>
-            <option value="6" selected>Julho</option><option value="7">Agosto</option><option value="8">Setembro</option>
-            <option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
+        <span class="current-date">29 de Julho de 2026</span>
+        <select id="headerMes" onchange="updateDashboard()">
+            <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+            <option>Abril</option><option>Maio</option><option>Junho</option>
+            <option selected>Julho</option><option>Agosto</option><option>Setembro</option>
+            <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
         </select>
         <select id="headerDia" onchange="updateDashboard()">
             <option value="all" selected>Todos os Dias</option>
@@ -101,22 +119,22 @@
     </div>
     <div class="kpi-card">
         <div class="kpi-label">Dias Úteis Restantes</div>
-        <div class="kpi-value" id="kpiDiasUteis">-</div>
+        <div class="kpi-value">4</div>
     </div>
 </div>
 
 <div class="section-card">
-    <div class="section-title">Acompanhamento Diário de Propostas</div>
+    <div class="section-title">📊 Acompanhamento Diário de Propostas</div>
     <div class="filter-row">
-        <label style="color:var(--muted);font-size:13px;">Início:</label>
-        <input type="date" id="dateStart">
-        <label style="color:var(--muted);font-size:13px;">Fim:</label>
-        <input type="date" id="dateEnd">
+        <label style="color:var(--muted); font-size:13px;">Início:</label>
+        <input type="date" id="dateStart" value="2026-07-01">
+        <label style="color:var(--muted); font-size:13px;">Fim:</label>
+        <input type="date" id="dateEnd" value="2026-07-31">
         <button class="btn btn-filter" onclick="updateDashboard()">Filtrar Período</button>
         <button class="btn btn-clear" onclick="resetPeriodo()">Limpar</button>
     </div>
     <div class="table-container">
-        <table>
+        <table id="mainTable">
             <thead>
                 <tr id="tableHeadRow">
                     <th class="sticky-col">Vendedor</th>
@@ -130,21 +148,16 @@
 </div>
 
 <div class="charts-grid">
-    <div class="chart-card">
-        <canvas id="chartVolumeDiario"></canvas>
-    </div>
-    <div class="chart-card">
-        <div class="chart-header-select">
-            <select id="selectVendMeta" onchange="updateChartMeta()"></select>
-        </div>
-        <canvas id="chartMeta"></canvas>
-    </div>
+    <div class="chart-card" style="grid-column: span 2;"><canvas id="chartVolumeDiario"></canvas></div>
+</div>
+
+<div class="section-card">
+    <div class="section-title">👤 Desempenho Individual por Vendedor vs Meta (5/dia)</div>
+    <div class="mini-charts-grid" id="miniChartsContainer"></div>
 </div>
 
 <div class="charts-grid">
-    <div class="chart-card">
-        <canvas id="chartRosca"></canvas>
-    </div>
+    <div class="chart-card"><canvas id="chartRosca"></canvas></div>
     <div class="chart-card">
         <div class="chart-header-select">
             <select id="selectVendBarra" onchange="updateChartBarra()">
@@ -157,7 +170,7 @@
 
 <div class="ranking-grid">
     <div class="section-card" style="margin-bottom:0;">
-        <div class="section-title">Classificação Geral</div>
+        <div class="section-title">🏆 Classificação Geral</div>
         <div class="podium-box" id="podiumBox"></div>
     </div>
     <div class="section-card" style="margin-bottom:0;">
@@ -165,7 +178,7 @@
             <select id="rankFiltroVend" onchange="renderRanking()">
                 <option value="all">Filtrar Vendedor: Todos</option>
             </select>
-            <input type="text" id="rankBusca" placeholder="Buscar vendedor..." oninput="renderRanking()">
+            <input type="text" id="rankBusca" placeholder="🔍 Buscar vendedor..." oninput="renderRanking()">
         </div>
         <div class="table-container">
             <table>
@@ -177,337 +190,274 @@
 </div>
 
 <script>
-const CORES = ['#f7c948','#3b82f6','#10b981','#f43f5e','#8b5cf6','#f97316','#06b6d4','#ec4899','#84cc16','#6366f1'];
-let DADOS_PLANILHA = {};
-let DIAS_MES = [];
-let MES_ATUAL = 6;
-let ANO_ATUAL = 2026;
-let charts = {};
+    let DADOS_PLANILHA = {};
 
-window.onload = async function() {
-    await carregarDados();
-    preencherSelects();
-    initCharts();
-    updateDashboard();
-};
-
-async function carregarDados() {
-    try {
-        const resp = await fetch('propostas.xlsx?v=' + Date.now());
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const buffer = await resp.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
-        const aba = workbook.Sheets[workbook.SheetNames[0]];
-        const linhas = XLSX.utils.sheet_to_json(aba, { header: 1, defval: '' });
-
-        // Linha 1 contem as datas
-        let diasNoMes = 31;
-        if (linhas.length > 1 && linhas[1][1]) {
-            const teste = new Date(linhas[1][1]);
-            if (!isNaN(teste.getTime())) {
-                MES_ATUAL = teste.getMonth();
-                ANO_ATUAL = teste.getFullYear();
-                diasNoMes = new Date(ANO_ATUAL, MES_ATUAL + 1, 0).getDate();
-            }
-        }
-
-        // Gera DIAS_MES
-        DIAS_MES = [];
-        for (let i = 1; i <= diasNoMes; i++) {
-            const d = new Date(ANO_ATUAL, MES_ATUAL, i);
-            DIAS_MES.push({
-                dia: i,
-                full: `${ANO_ATUAL}-${String(MES_ATUAL+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`,
-                formatado: String(i).padStart(2,'0') + '/' + String(MES_ATUAL+1).padStart(2,'0'),
-                isUtil: d.getDay() !== 0 && d.getDay() !== 6
-            });
-        }
-
-        // Le dados a partir da linha 2
-        const temp = {};
-        for (let i = 2; i < linhas.length; i++) {
-            const linha = linhas[i];
-            if (!linha || !linha[0]) continue;
-            const nome = String(linha[0]).trim();
-            if (!nome || nome.toLowerCase() === 'data') continue;
-            const valores = [];
-            for (let j = 1; j <= diasNoMes; j++) {
-                const v = linha[j];
-                if (v === '' || v === '-' || v === '—' || v === undefined || v === null) {
-                    valores.push(0);
-                } else {
-                    valores.push(Number(v) || 0);
-                }
-            }
-            temp[nome] = valores;
-        }
-        DADOS_PLANILHA = temp;
-
-        // Atualiza data e selects de dia
-        document.getElementById('dataAtual').textContent = `${diasNoMes} de ${['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][MES_ATUAL]} de ${ANO_ATUAL}`;
-
-        const selDia = document.getElementById('headerDia');
-        selDia.innerHTML = '<option value="all" selected>Todos os Dias</option>';
-        for (let i = 1; i <= diasNoMes; i++) {
-            selDia.innerHTML += `<option value="${i}">${i}</option>`;
-        }
-
-        document.getElementById('dateStart').value = `${ANO_ATUAL}-${String(MES_ATUAL+1).padStart(2,'0')}-01`;
-        document.getElementById('dateEnd').value = `${ANO_ATUAL}-${String(MES_ATUAL+1).padStart(2,'0')}-${String(diasNoMes).padStart(2,'0')}`;
-
-        console.log(`OK: ${Object.keys(DADOS_PLANILHA).length} vendedores, ${diasNoMes} dias`);
-        return;
-    } catch (e) {
-        console.error('Erro ao ler planilha:', e);
-    }
-
-    // Fallback
-    DIAS_MES = [];
+    const DIAS_MES = [];
     for (let i = 1; i <= 31; i++) {
-        const d = new Date(2026, 6, i);
-        DIAS_MES.push({ dia: i, full: `2026-07-${String(i).padStart(2,'0')}`, formatado: String(i).padStart(2,'0')+'/07', isUtil: d.getDay()!==0 && d.getDay()!==6 });
-    }
-    ['Alex','Diego','Michel','Junior','Marcelo','Cesar','Diogo','Eduardo','Emerson','Lucas'].forEach(n => DADOS_PLANILHA[n] = new Array(31).fill(0));
-    document.getElementById('dataAtual').textContent = 'Julho de 2026';
-}
-
-function preencherSelects() {
-    const nomes = Object.keys(DADOS_PLANILHA);
-    document.querySelectorAll('#headerVendedor, #rankFiltroVend').forEach(s => {
-        nomes.forEach(n => s.innerHTML += `<option value="${n}">${n}</option>`);
-    });
-    document.querySelectorAll('#selectVendMeta').forEach(s => {
-        nomes.forEach((n,i) => s.innerHTML += `<option value="${n}" ${i===0?'selected':''}>${n}</option>`);
-    });
-    document.querySelectorAll('#selectVendBarra').forEach(s => {
-        nomes.forEach(n => s.innerHTML += `<option value="${n}">${n}</option>`);
-    });
-}
-
-function trocarMes() {
-    const idx = parseInt(document.getElementById('headerMes').value);
-    const diasNoMes = new Date(ANO_ATUAL, idx + 1, 0).getDate();
-    DIAS_MES = [];
-    for (let i = 1; i <= diasNoMes; i++) {
-        const d = new Date(ANO_ATUAL, idx, i);
+        const data = new Date(2026, 6, i);
         DIAS_MES.push({
             dia: i,
-            full: `${ANO_ATUAL}-${String(idx+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`,
-            formatado: String(i).padStart(2,'0') + '/' + String(idx+1).padStart(2,'0'),
-            isUtil: d.getDay() !== 0 && d.getDay() !== 6
+            full: `2026-07-${i.toString().padStart(2, '0')}`,
+            formatado: i.toString().padStart(2, '0') + '/07',
+            isUtil: data.getDay() !== 0 && data.getDay() !== 6
         });
     }
-    document.getElementById('dateStart').value = `${ANO_ATUAL}-${String(idx+1).padStart(2,'0')}-01`;
-    document.getElementById('dateEnd').value = `${ANO_ATUAL}-${String(idx+1).padStart(2,'0')}-${String(diasNoMes).padStart(2,'0')}`;
-    updateDashboard();
-}
 
-function resetPeriodo() {
-    const idx = parseInt(document.getElementById('headerMes').value);
-    const diasNoMes = new Date(ANO_ATUAL, idx + 1, 0).getDate();
-    document.getElementById('dateStart').value = `${ANO_ATUAL}-${String(idx+1).padStart(2,'0')}-01`;
-    document.getElementById('dateEnd').value = `${ANO_ATUAL}-${String(idx+1).padStart(2,'0')}-${String(diasNoMes).padStart(2,'0')}`;
-    updateDashboard();
-}
+    const CORES = ['#f7c948','#3b82f6','#10b981','#f43f5e','#8b5cf6','#f97316','#06b6d4','#ec4899','#84cc16','#6366f1'];
+    let charts = { mini: {} };
 
-function updateDashboard() {
-    const fDia = document.getElementById('headerDia').value;
-    const fVend = document.getElementById('headerVendedor').value;
-    const dStart = document.getElementById('dateStart').value;
-    const dEnd = document.getElementById('dateEnd').value;
-
-    let dias = DIAS_MES.filter(d => d.full >= dStart && d.full <= dEnd && d.isUtil);
-    if (fDia !== 'all') dias = dias.filter(d => d.dia == fDia);
-
-    let nomes = Object.keys(DADOS_PLANILHA);
-    if (fVend !== 'all') nomes = [fVend];
-
-    renderTabela(dias, nomes);
-    updateKPIs();
-    renderRanking();
-    renderPodium();
-    updateCharts(dias);
-}
-
-function updateKPIs() {
-    let total = 0, melhorNome = '-', melhorValor = -1;
-    Object.entries(DADOS_PLANILHA).forEach(([nome, propostas]) => {
-        const soma = propostas.reduce((a, b) => a + b, 0);
-        total += soma;
-        if (soma > melhorValor) { melhorValor = soma; melhorNome = `${nome} (${soma})`; }
-    });
-    document.getElementById('kpiTotal').textContent = total;
-    document.getElementById('kpiMelhor').textContent = total > 0 ? melhorNome : '-';
-
-    const hoje = new Date();
-    let restantes = 0;
-    DIAS_MES.forEach(d => {
-        const data = new Date(ANO_ATUAL, MES_ATUAL, d.dia);
-        if (data > hoje && d.isUtil) restantes++;
-    });
-    document.getElementById('kpiDiasUteis').textContent = restantes;
-}
-
-function renderTabela(dias, nomes) {
-    const head = document.getElementById('tableHeadRow');
-    const body = document.getElementById('tableBody');
-    const foot = document.getElementById('tableFoot');
-    head.innerHTML = '<th class="sticky-col">Vendedor</th>';
-    dias.forEach(d => head.innerHTML += `<th>${d.formatado}</th>`);
-    head.innerHTML += '<th>TOTAL</th>';
-
-    body.innerHTML = '';
-    let totaisPorDia = new Array(dias.length).fill(0);
-    let somaGeral = 0;
-
-    nomes.forEach(nome => {
-        const propostas = DADOS_PLANILHA[nome] || new Array(31).fill(0);
-        let tr = `<tr><td class="sticky-col">${nome}</td>`;
-        let somaLinha = 0;
-        dias.forEach((d, i) => {
-            const val = propostas[d.dia - 1] || 0;
-            tr += `<td>${val}</td>`;
-            somaLinha += val;
-            totaisPorDia[i] += val;
-        });
-        tr += `<td style="font-weight:bold;color:var(--yellow);">${somaLinha}</td></tr>`;
-        body.innerHTML += tr;
-        somaGeral += somaLinha;
-    });
-
-    let ft = `<tr class="row-total"><td class="sticky-col">TOTAL GERAL</td>`;
-    totaisPorDia.forEach(t => ft += `<td>${t}</td>`);
-    ft += `<td>${somaGeral}</td></tr>`;
-    ft += `<tr class="row-media"><td class="sticky-col">MÉDIA</td>`;
-    totaisPorDia.forEach(t => ft += `<td>${nomes.length ? (t/nomes.length).toFixed(1) : 0}</td>`);
-    ft += `<td>-</td></tr>`;
-    foot.innerHTML = ft;
-}
-
-function renderRanking() {
-    const filtro = document.getElementById('rankFiltroVend').value;
-    const busca = document.getElementById('rankBusca').value.toLowerCase();
-    const body = document.getElementById('rankBody');
-    body.innerHTML = '';
-    const diasUteis = DIAS_MES.filter(d => d.isUtil).length || 1;
-    const lista = Object.entries(DADOS_PLANILHA).map(([nome, propostas]) => ({
-        nome, total: propostas.reduce((a,b) => a+b, 0)
-    })).filter(v => (filtro === 'all' || v.nome === filtro) && v.nome.toLowerCase().includes(busca))
-      .sort((a, b) => b.total - a.total);
-
-    lista.forEach((v, i) => {
-        body.innerHTML += `<tr><td style="color:var(--yellow);font-weight:bold;">${i+1}º</td><td style="text-align:left;font-weight:600;">${v.nome}</td><td>${v.total}</td><td>${(v.total / diasUteis).toFixed(1)}</td></tr>`;
-    });
-}
-
-function renderPodium() {
-    const sorted = Object.entries(DADOS_PLANILHA)
-        .map(([nome, propostas]) => ({ nome, total: propostas.reduce((a,b) => a+b, 0) }))
-        .sort((a, b) => b.total - a.total);
-    const box = document.getElementById('podiumBox');
-    if (sorted.length === 0) { box.innerHTML = '<div style="color:var(--muted);padding:40px;">Sem dados</div>'; return; }
-    const p2 = sorted[1] || { nome: '-', total: 0 };
-    const p1 = sorted[0] || { nome: '-', total: 0 };
-    const p3 = sorted[2] || { nome: '-', total: 0 };
-    box.innerHTML = [
-        { v: p2, c: 'p2', m: '🥈' },
-        { v: p1, c: 'p1', m: '🥇' },
-        { v: p3, c: 'p3', m: '🥉' }
-    ].map(item => `
-        <div class="podium-item">
-            <div class="podium-name">${item.v.nome}</div>
-            <div class="podium-bar ${item.c}">
-                <div class="medal">${item.m}</div>
-                <div style="font-size:22px;">${item.v.total}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function initCharts() {
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.borderColor = '#2d3748';
-    charts.vol = new Chart(document.getElementById('chartVolumeDiario'), {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Propostas', data: [], borderColor: '#f7c948', backgroundColor: 'rgba(247,201,72,0.1)', fill: true, tension: 0.4 }] },
-        options: chartOpts('Volume Diário de Propostas')
-    });
-    charts.meta = new Chart(document.getElementById('chartMeta'), {
-        type: 'line',
-        data: { labels: [], datasets: [
-            { label: 'Realizado', data: [], borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3 },
-            { label: 'Meta (5/dia)', data: [], borderColor: '#f43f5e', borderDash: [5,5], pointRadius: 0 }
-        ]},
-        options: chartOpts('Desempenho Individual vs Meta Diária')
-    });
-    const nomes = Object.keys(DADOS_PLANILHA);
-    const totais = nomes.map(n => DADOS_PLANILHA[n].reduce((a,b) => a+b, 0));
-    charts.rosca = new Chart(document.getElementById('chartRosca'), {
-        type: 'doughnut',
-        data: { labels: nomes, datasets: [{ data: totais, backgroundColor: CORES, borderWidth: 0 }] },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: {
-                title: { display: true, text: 'Distribuição de Propostas por Vendedor', color: '#fff', font: { size: 14 } },
-                legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } }
-            }
-        }
-    });
-    charts.bar = new Chart(document.getElementById('chartBarras'), {
-        type: 'bar',
-        data: { labels: nomes, datasets: [{ label: 'Propostas', data: totais, backgroundColor: CORES, borderRadius: 4 }] },
-        options: chartOpts('Comparativo de Propostas entre Vendedores')
-    });
-}
-
-function updateCharts(dias) {
-    charts.vol.data.labels = dias.map(d => d.formatado);
-    charts.vol.data.datasets[0].data = dias.map(d => Object.values(DADOS_PLANILHA).reduce((acc, prop) => acc + (prop[d.dia - 1] || 0), 0));
-    charts.vol.update();
-    updateChartMeta();
-}
-
-function updateChartMeta() {
-    const sel = document.getElementById('selectVendMeta');
-    const nome = sel.value || Object.keys(DADOS_PLANILHA)[0];
-    if (!nome) return;
-    const propostas = DADOS_PLANILHA[nome] || new Array(31).fill(0);
-    const dStart = document.getElementById('dateStart').value;
-    const dEnd = document.getElementById('dateEnd').value;
-    const dias = DIAS_MES.filter(d => d.full >= dStart && d.full <= dEnd && d.isUtil);
-    charts.meta.data.labels = dias.map(d => d.formatado);
-    charts.meta.data.datasets[0].data = dias.map(d => propostas[d.dia - 1] || 0);
-    charts.meta.data.datasets[1].data = new Array(dias.length).fill(5);
-    charts.meta.data.datasets[0].label = nome;
-    charts.meta.options.plugins.title.text = `Desempenho Individual: ${nome} vs Meta Diária`;
-    charts.meta.update();
-}
-
-function updateChartBarra() {
-    const val = document.getElementById('selectVendBarra').value;
-    if (val === 'all') {
-        charts.bar.data.labels = Object.keys(DADOS_PLANILHA);
-        charts.bar.data.datasets[0].data = Object.keys(DADOS_PLANILHA).map(n => DADOS_PLANILHA[n].reduce((a,b) => a+b, 0));
-    } else {
-        charts.bar.data.labels = [val];
-        charts.bar.data.datasets[0].data = [DADOS_PLANILHA[val].reduce((a,b) => a+b, 0)];
-    }
-    charts.bar.update();
-}
-
-function chartOpts(title) {
-    return {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-            title: { display: true, text: title, color: '#fff', font: { size: 14 } },
-            legend: { display: false }
-        },
-        scales: {
-            y: { beginAtZero: true, grid: { color: '#2d3748' } },
-            x: { grid: { display: false } }
-        }
+    window.onload = async () => {
+        await carregarDados();
+        initSelects();
+        initCharts();
+        updateDashboard();
     };
-}
+
+    async function carregarDados() {
+      try {
+        const response = await fetch('propostas.xlsx');
+        if (!response.ok) throw new Error("Arquivo propostas.xlsx não encontrado.");
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const dados = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        const DADOS = {};
+
+        for (let i = 2; i < dados.length; i++) {
+          const linha = dados[i];
+          const nome = linha[0];
+          if (!nome) continue;
+          const propostas = [];
+          for (let j = 1; j <= 31; j++) {
+            const valor = parseInt(linha[j]) || 0;
+            propostas.push(valor);
+          }
+          DADOS[nome] = propostas;
+        }
+        DADOS_PLANILHA = DADOS;
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        alert("Erro ao carregar 'propostas.xlsx'. Verifique se o arquivo existe na mesma pasta.");
+      }
+    }
+
+    function initSelects() {
+        const hDia = document.getElementById('headerDia');
+        for (let i = 1; i <= 31; i++) hDia.innerHTML += `<option value="${i}">${i}</option>`;
+        const selects = [
+            document.getElementById('headerVendedor'),
+            document.getElementById('selectVendBarra'),
+            document.getElementById('rankFiltroVend')
+        ];
+        selects.forEach(s => {
+            Object.keys(DADOS_PLANILHA).forEach(nome => {
+                s.innerHTML += `<option value="${nome}">${nome}</option>`;
+            });
+        });
+    }
+
+    function resetPeriodo() {
+        document.getElementById('dateStart').value = '2026-07-01';
+        document.getElementById('dateEnd').value = '2026-07-31';
+        updateDashboard();
+    }
+
+    function updateDashboard() {
+        const fDia = document.getElementById('headerDia').value;
+        const fVend = document.getElementById('headerVendedor').value;
+        const dStart = document.getElementById('dateStart').value;
+        const dEnd = document.getElementById('dateEnd').value;
+
+        let dias = DIAS_MES.filter(d => d.full >= dStart && d.full <= dEnd && d.isUtil);
+        if (fDia !== 'all') dias = dias.filter(d => d.dia == fDia);
+        let nomes = Object.keys(DADOS_PLANILHA);
+        if (fVend !== 'all') nomes = [fVend];
+
+        renderTabela(dias, nomes);
+        updateKPIs();
+        renderRanking();
+        renderPodium();
+        updateCharts(dias);
+        updateMiniCharts(dias);
+    }
+
+    function updateKPIs() {
+        let total = 0, melhorNome = "", melhorValor = -1;
+        Object.entries(DADOS_PLANILHA).forEach(([nome, propostas]) => {
+            const soma = propostas.reduce((a, b) => a + b, 0);
+            total += soma;
+            if (soma > melhorValor) { melhorValor = soma; melhorNome = nome; }
+        });
+        document.getElementById('kpiTotal').textContent = total;
+        document.getElementById('kpiMelhor').textContent = `${melhorNome} (${melhorValor})`;
+    }
+
+    function renderTabela(dias, nomes) {
+        const head = document.getElementById('tableHeadRow');
+        const body = document.getElementById('tableBody');
+        const foot = document.getElementById('tableFoot');
+
+        head.innerHTML = '<th class="sticky-col">Vendedor</th>';
+        dias.forEach(d => head.innerHTML += `<th>${d.formatado}</th>`);
+        head.innerHTML += '<th>TOTAL</th>';
+
+        body.innerHTML = '';
+        let totaisPorDia = new Array(dias.length).fill(0), somaGeral = 0;
+
+        nomes.forEach(nome => {
+            const propostas = DADOS_PLANILHA[nome];
+            let tr = `<tr><td class="sticky-col">${nome}</td>`, somaLinha = 0;
+            dias.forEach((d, i) => {
+                const val = propostas[d.dia - 1];
+                tr += `<td>${val}</td>`;
+                somaLinha += val;
+                totaisPorDia[i] += val;
+            });
+            tr += `<td style="font-weight:bold;color:var(--yellow);">${somaLinha}</td></tr>`;
+            body.innerHTML += tr;
+            somaGeral += somaLinha;
+        });
+
+        let ft = `<tr class="row-total"><td class="sticky-col">TOTAL GERAL</td>`;
+        totaisPorDia.forEach(t => ft += `<td>${t}</td>`);
+        ft += `<td>${somaGeral}</td></tr>`;
+        ft += `<tr class="row-media"><td class="sticky-col">MÉDIA</td>`;
+        totaisPorDia.forEach(t => ft += `<td>${nomes.length > 0 ? (t/nomes.length).toFixed(1) : 0}</td>`);
+        ft += `<td>-</td></tr>`;
+        foot.innerHTML = ft;
+    }
+
+    function renderRanking() {
+        const filtro = document.getElementById('rankFiltroVend').value;
+        const busca = document.getElementById('rankBusca').value.toLowerCase();
+        const body = document.getElementById('rankBody');
+        body.innerHTML = '';
+        const lista = Object.entries(DADOS_PLANILHA).map(([nome, propostas]) => ({
+            nome, total: propostas.reduce((a, b) => a + b, 0)
+        })).filter(v => (filtro === 'all' || v.nome === filtro) && v.nome.toLowerCase().includes(busca))
+          .sort((a, b) => b.total - a.total);
+
+        lista.forEach((v, i) => {
+            const media = (v.total / DIAS_MES.filter(d => d.isUtil).length).toFixed(1);
+            body.innerHTML += `<tr><td style="color:var(--yellow);font-weight:bold;">${i+1}º</td><td style="text-align:left;font-weight:600;">${v.nome}</td><td>${v.total}</td><td>${media}</td></tr>`;
+        });
+    }
+
+    function renderPodium() {
+        const sorted = Object.entries(DADOS_PLANILHA).map(([nome, propostas]) => ({
+            nome, total: propostas.reduce((a, b) => a + b, 0)
+        })).sort((a, b) => b.total - a.total);
+        const box = document.getElementById('podiumBox');
+        if (sorted.length < 3) return;
+        box.innerHTML = [
+            { v: sorted[1], c: 'p2', m: '🥈' },
+            { v: sorted[0], c: 'p1', m: '🥇' },
+            { v: sorted[2], c: 'p3', m: '🥉' }
+        ].map(item => `
+            <div class="podium-item">
+                <div class="podium-name">${item.v.nome}</div>
+                <div class="podium-bar ${item.c}">
+                    <div class="medal">${item.m}</div>
+                    <div style="font-size:22px;">${item.v.total}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function initCharts() {
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = '#2d3748';
+
+        charts.vol = new Chart(document.getElementById('chartVolumeDiario'), {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Propostas', data: [], borderColor: '#f7c948', backgroundColor: 'rgba(247,201,72,0.1)', fill: true, tension: 0.4 }] },
+            options: chartOpts('📈 Volume Diário de Propostas Registradas')
+        });
+
+        const container = document.getElementById('miniChartsContainer');
+        container.innerHTML = '';
+
+        Object.keys(DADOS_PLANILHA).forEach((nome, index) => {
+            const card = document.createElement('div');
+            card.className = 'mini-chart-card';
+            card.innerHTML = `<canvas id="chart-${nome}"></canvas>`;
+            container.appendChild(card);
+
+            charts.mini[nome] = new Chart(document.getElementById(`chart-${nome}`), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Realizado', data: [], borderColor: CORES[index % CORES.length], tension: 0.3, pointRadius: 2 },
+                        { label: 'Meta', data: [], borderColor: '#f43f5e', borderDash: [5,5], pointRadius: 0, fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { title: { display: true, text: nome, color: '#fff', font: { size: 12 } }, legend: { display: false } },
+                    scales: { y: { min: 0, max: 6, ticks: { stepSize: 1 }, grid: { color: '#2d3748' } }, x: { display: false } }
+                }
+            });
+        });
+
+        const nomes = Object.keys(DADOS_PLANILHA);
+        const totais = nomes.map(n => DADOS_PLANILHA[n].reduce((a,b) => a+b, 0));
+
+        charts.rosca = new Chart(document.getElementById('chartRosca'), {
+            type: 'doughnut',
+            data: { labels: nomes, datasets: [{ data: totais, backgroundColor: CORES, borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: {
+                title: { display: true, text: '🍩 Distribuição de Propostas por Vendedor (%)', color: '#fff', font: { size: 14 } },
+                legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } }
+            }}
+        });
+
+        charts.bar = new Chart(document.getElementById('chartBarras'), {
+            type: 'bar',
+            data: { labels: nomes, datasets: [{ label: 'Propostas', data: totais, backgroundColor: CORES, borderRadius: 4 }] },
+            options: chartOpts('📊 Comparativo de Propostas Entre Vendedores')
+        });
+    }
+
+    function updateCharts(dias) {
+        const labels = dias.map(d => d.formatado);
+        charts.vol.data.labels = labels;
+        charts.vol.data.datasets[0].data = dias.map(d => Object.values(DADOS_PLANILHA).reduce((acc, prop) => acc + prop[d.dia - 1], 0));
+        charts.vol.update();
+        updateMiniCharts(dias);
+    }
+
+    function updateMiniCharts(dias) {
+        Object.keys(DADOS_PLANILHA).forEach(nome => {
+            const chart = charts.mini[nome];
+            const propostas = DADOS_PLANILHA[nome];
+            chart.data.labels = dias.map(d => d.formatado);
+            chart.data.datasets[0].data = dias.map(d => propostas[d.dia - 1]);
+            chart.data.datasets[1].data = new Array(dias.length).fill(5);
+            chart.update();
+        });
+    }
+
+    function updateChartBarra() {
+        const val = document.getElementById('selectVendBarra').value;
+        if (val === 'all') {
+            charts.bar.data.labels = Object.keys(DADOS_PLANILHA);
+            charts.bar.data.datasets[0].data = Object.keys(DADOS_PLANILHA).map(n => DADOS_PLANILHA[n].reduce((a,b) => a+b, 0));
+        } else {
+            charts.bar.data.labels = [val];
+            charts.bar.data.datasets[0].data = [DADOS_PLANILHA[val].reduce((a,b) => a+b, 0)];
+        }
+        charts.bar.update();
+    }
+
+    function chartOpts(title) {
+        return { responsive: true, maintainAspectRatio: false,
+            plugins: { title: { display: true, text: title, color: '#fff', font: { size: 14 } }, legend: { display: false } },
+            scales: { y: { beginAtZero: true, grid: { color: '#2d3748' } }, x: { grid: { display: false } } }
+        };
+    }
 </script>
+
 </body>
 </html>
